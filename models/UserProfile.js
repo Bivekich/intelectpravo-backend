@@ -31,7 +31,7 @@ const UserProfile = sequelize.define('UserProfile', {
     allowNull: false,
   },
   documentPhoto: {
-    type: DataTypes.STRING, // Здесь хранится путь к загруженному фото
+    type: DataTypes.STRING,
     allowNull: true,
   },
   isConfirmed: {

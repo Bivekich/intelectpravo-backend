@@ -8,7 +8,7 @@ Content-Type: application/json
 }
 
 ### Авторизация пользователя
-POST http://localhost:3000/auth/login
+POST https://api.intelectpravo.ru/auth/login
 Content-Type: application/json
 
 {
@@ -16,10 +16,10 @@ Content-Type: application/json
 }
 
 ### Верефикация (4-ех значный код)
-POST http://localhost:3000/auth/verify
+POST https://api.intelectpravo.ru/auth/verify
 Content-Type: application/json
 
 {
   "email": "bivekipro@gmail.com",
-  "code": "8245"
+  "code": "6994"
 }

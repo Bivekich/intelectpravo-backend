@@ -1,0 +1,27 @@
+### Создание черновика продажи
+POST http://localhost:3000/sale/create
+Authorization: Bearer {{your_jwt_token}}
+Content-Type: multipart/form-data
+
+@file=@/path/to/file.txt
+{
+  "title": "Название произведения",
+  "description": "Описание произведения",
+  "price": 1000,
+  "accountNumber": "12345678901234567890",
+  "saleType": "license",
+  "isExclusive": true,
+  "licenseTerm": 5
+}
+
+###
+
+### Подтверждение продажи
+POST http://localhost:3000/sale/confirm
+Authorization: Bearer {{your_jwt_token}}
+
+###
+
+### Получение всех продаж
+GET http://localhost:3000/sale/sales
+Authorization: Bearer {{your_jwt_token}}
