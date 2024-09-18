@@ -1,6 +1,6 @@
 ### Тест получения базового профиля
-GET http://localhost:3000/profile/basic
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJiaXZla2lwcm9AZ21haWwuY29tIiwiZnVsbE5hbWUiOiLQlNCw0L3QuNC70L7QsiDQm9C10LIg0JjQu9GM0LjRhyIsImlhdCI6MTcyNjY1MzkxMCwiZXhwIjoxNzI2NzQwMzEwfQ.FOPjXjJWN67DFX0LRwK_8mQrU_wZIWCerfOSfckbd1U
+GET https://api.intelectpravo.ru/profile/basic
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJiaXZla2lwcm9AZ21haWwuY29tIiwiZnVsbE5hbWUiOiLQlNCw0L3QuNC70L7QsiDQm9C10LIg0JjQu9GM0LjRhyIsImlhdCI6MTcyNjY4MjI4NiwiZXhwIjoxNzI2NzY4Njg2fQ.XlvaTmSX5pmB0FNbFbsWKKMVTbFQ0MeYfBbcU_uBJQU
 
 ###
 
@@ -32,7 +32,7 @@ Content-Type: multipart/form-data
 ###
 
 ### Тест подтверждения профиля
-POST http://localhost:3000/profile/confirm
+POST https://api.intelectpravo.ru/profile/confirm
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJiaXZla2lwcm9AZ21haWwuY29tIiwiZnVsbE5hbWUiOiLQlNCw0L3QuNC70L7QsiDQm9C10LIg0JjQu9GM0LjRhyIsImlhdCI6MTcyNjY1MzkxMCwiZXhwIjoxNzI2NzQwMzEwfQ.FOPjXjJWN67DFX0LRwK_8mQrU_wZIWCerfOSfckbd1U
 
 ###
