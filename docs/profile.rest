@@ -1,5 +1,5 @@
 ### Тест получения базового профиля
-GET https://api.intelectpravo.ru/profile/basic
+GET http://localhost:3000/profile/basic
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJiaXZla2lwcm9AZ21haWwuY29tIiwiZnVsbE5hbWUiOiLQlNCw0L3QuNC70L7QsiDQm9C10LIg0JjQu9GM0LjRhyIsImlhdCI6MTcyNjY4MjI4NiwiZXhwIjoxNzI2NzY4Njg2fQ.XlvaTmSX5pmB0FNbFbsWKKMVTbFQ0MeYfBbcU_uBJQU
 
 ###
@@ -16,7 +16,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiO
   "passportSeries": "2419",
   "passportNumber": "955212",
   "passportIssuedBy": "УФМС России",
-  "passportIssuedDate": "2019-07-17"
+  "passportIssuedDate": "2019-07-17",
+  "email": "bivekild@yandex.ru",
+  "phoneNumber": "+79611177205"
 }
 
 ###

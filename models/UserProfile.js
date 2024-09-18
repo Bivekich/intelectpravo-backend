@@ -42,6 +42,16 @@ const UserProfile = sequelize.define('UserProfile', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  phoneNumber: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true,
+  },
 });
 
 module.exports = UserProfile;

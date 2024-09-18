@@ -22,6 +22,8 @@ exports.updateProfile = async (req, res) => {
     passportNumber,
     passportIssuedBy,
     passportIssuedDate,
+    email,
+    phoneNumber,
   } = req.body;
   let profile = await UserProfile.findOne({ where: { userId } });
   if (!profile) {
@@ -34,6 +36,8 @@ exports.updateProfile = async (req, res) => {
       passportNumber,
       passportIssuedBy,
       passportIssuedDate,
+      email,
+      phoneNumber,
       isConfirmed: false,
     });
     return res.status(201).json({
@@ -50,6 +54,8 @@ exports.updateProfile = async (req, res) => {
       passportNumber,
       passportIssuedBy,
       passportIssuedDate,
+      email,
+      phoneNumber,
     },
     {
       where: { userId },
