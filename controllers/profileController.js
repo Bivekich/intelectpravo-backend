@@ -89,3 +89,14 @@ exports.addBankDetails = async (req, res) => {
   });
   res.json({ message: 'Банковские реквизиты добавлены.', bankDetails });
 };
+
+exports.getBankDetails = async (req, res) => {
+  const userId = req.user.id;
+  const bankDetails = await BankDetails.findOne({ where: { userId } });
+  if (!bankDetails) {
+    return res
+      .status(404)
+      .json({ message: 'Банковские реквизиты не найдены.' });
+  }
+  res.json(bankDetails);
+};

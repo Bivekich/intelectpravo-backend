@@ -5,6 +5,7 @@ const {
   uploadDocumentPhoto,
   confirmProfile,
   addBankDetails,
+  getBankDetails,
 } = require('../controllers/profileController');
 const authenticateToken = require('../middleware/auth');
 const upload = require('../middleware/upload');
@@ -20,5 +21,6 @@ router.post(
 );
 router.post('/confirm', authenticateToken, confirmProfile);
 router.post('/bank-details', authenticateToken, addBankDetails);
+router.get('/bank-details', authenticateToken, getBankDetails);
 
 module.exports = router;
