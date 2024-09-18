@@ -1,5 +1,6 @@
 const { User, Code } = require('../models');
 const { sendEmailWithCode } = require('../services/emailService');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 exports.login = async (req, res) => {
@@ -40,5 +41,14 @@ exports.verifyCode = async (req, res) => {
   }
   await User.update({ isVerified: true }, { where: { email } });
   await Code.destroy({ where: { email, code } });
-  res.status(200).json({ message: 'Электорнная почта успешно подтверждена.' });
+  const user = await User.findOne({ where: { email } });
+  const token = jwt.sign(
+    { id: user.id, email: user.email, fullName: user.fullName },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' },
+  );
+  res.status(200).json({
+    message: 'Электронная почта успешно подтверждена.',
+    token,
+  });
 };
