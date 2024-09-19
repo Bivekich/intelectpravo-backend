@@ -1,5 +1,5 @@
 // controllers/authController.js
-const { User, UserProfile } = require('../models');
+const { User, UserProfile, Code } = require('../models');
 const { sendEmailWithCode } = require('../services/emailService');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
