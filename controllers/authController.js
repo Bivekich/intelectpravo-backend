@@ -1,4 +1,5 @@
-const { User, Code } = require('../models');
+// controllers/authController.js
+const { User, UserProfile } = require('../models');
 const { sendEmailWithCode } = require('../services/emailService');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -28,6 +29,19 @@ exports.register = async (req, res) => {
       .json({ message: 'Пользователь уже существует. Авторизуйтесь.' });
   }
   user = await User.create({ email, fullName });
+  await UserProfile.create({
+    userId: user.id,
+    email: user.email,
+    fullName: user.fullName,
+    birthDate: null,
+    address: null,
+    passportSeries: null,
+    passportNumber: null,
+    passportIssuedBy: null,
+    passportIssuedDate: null,
+    isConfirmed: false,
+  });
+
   res.status(200).json({ message: 'Пользователь успешно зарегистрирован' });
 };
 

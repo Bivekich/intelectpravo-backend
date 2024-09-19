@@ -8,27 +8,27 @@ const UserProfile = sequelize.define('UserProfile', {
   },
   birthDate: {
     type: DataTypes.DATE,
-    allowNull: false,
+    allowNull: true,
   },
   address: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   passportSeries: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   passportNumber: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   passportIssuedBy: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   passportIssuedDate: {
     type: DataTypes.DATE,
-    allowNull: false,
+    allowNull: true,
   },
   documentPhoto: {
     type: DataTypes.STRING,
