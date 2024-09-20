@@ -1,9 +1,8 @@
 ### Создание черновика продажи
 POST http://localhost:3000/sale/create
-Authorization: Bearer {{your_jwt_token}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ2bC5lYmVsLnRtQGdtYWlsLmNvbSIsImZ1bGxOYW1lIjoi0JjQstCw0L3QvtCyINCY0LLQsNC9INCY0LLQsNC90L7QstC40YciLCJpYXQiOjE3MjY3NTkzODksImV4cCI6MTcyNjg0NTc4OX0.dfFHRs_hsEozDgJdfS81mE2K7IHv3nycookE82PgUTo
 Content-Type: multipart/form-data
 
-@file=@/path/to/file.txt
 {
   "title": "Название произведения",
   "description": "Описание произведения",
@@ -16,12 +15,27 @@ Content-Type: multipart/form-data
 
 ###
 
+### Тест загрузки документа
+POST http://localhost:3000/sale/upload-file
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJiaXZla2lwcm9AZ21haWwuY29tIiwiZnVsbE5hbWUiOiLQlNCw0L3QuNC70L7QsiDQm9C10LIg0JjQu9GM0LjRhyIsImlhdCI6MTcyNjY1MzkxMCwiZXhwIjoxNzI2NzQwMzEwfQ.FOPjXjJWN67DFX0LRwK_8mQrU_wZIWCerfOSfckbd1U
+Content-Type: multipart/form-data
+
+# Пример использования файла для загрузки
+@file=@/path/to/photo.jpg
+
+###
+
 ### Подтверждение продажи
 POST http://localhost:3000/sale/confirm
-Authorization: Bearer {{your_jwt_token}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJiaXZla2lwcm9AZ21haWwuY29tIiwiZnVsbE5hbWUiOiLQlNCw0L3QuNC70L7QsiDQm9C10LIg0JjQu9GM0LjRhyIsImlhdCI6MTcyNjY1MzkxMCwiZXhwIjoxNzI2NzQwMzEwfQ.FOPjXjJWN67DFX0LRwK_8mQrU_wZIWCerfOSfckbd1U
 
 ###
 
 ### Получение всех продаж
 GET http://localhost:3000/sale/sales
-Authorization: Bearer {{your_jwt_token}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ2bC5lYmVsLnRtQGdtYWlsLmNvbSIsImZ1bGxOYW1lIjoi0JjQstCw0L3QvtCyINCY0LLQsNC9INCY0LLQsNC90L7QstC40YciLCJpYXQiOjE3MjY3NTkzODksImV4cCI6MTcyNjg0NTc4OX0.dfFHRs_hsEozDgJdfS81mE2K7IHv3nycookE82PgUTo
+
+### Получение всех продаж пользователя
+GET http://localhost:3000/sale/user-sales
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ2bC5lYmVsLnRtQGdtYWlsLmNvbSIsImZ1bGxOYW1lIjoi0JjQstCw0L3QvtCyINCY0LLQsNC9INCY0LLQsNC90L7QstC40YciLCJpYXQiOjE3MjY3NTkzODksImV4cCI6MTcyNjg0NTc4OX0.dfFHRs_hsEozDgJdfS81mE2K7IHv3nycookE82PgUTo
+

@@ -1,0 +1,4 @@
+User-agent: * #указывает, для каких роботов установлены директивы
+Disallow: 
+Host: www.bankguarantees.online/
+Sitemap: https://bankguarantees.online/bg.xml # указывает роботу на файл Sitemap для сайта
