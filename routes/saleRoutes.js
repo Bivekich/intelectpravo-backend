@@ -19,7 +19,6 @@ router.post(
   upload.single("file"),
   createOrUpdateSale
 );
-router.post("/confirm", authenticateToken, confirmSale);
 router.get("/user-buy", authenticateToken, buyUserSales);
 router.get("/user-markPaid", authenticateToken, markPaid);
 router.get("/user-sales", authenticateToken, getUserSales);

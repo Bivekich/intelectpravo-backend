@@ -43,26 +43,6 @@ exports.createOrUpdateSale = async (req, res) => {
   res.status(200).json({ message: "Черновик сохранен", sale });
 };
 
-// Отключена данная функция
-exports.confirmSale = async (req, res) => {
-  const userId = req.user.id;
-  const sale = await Sale.findOne({ where: { userId, status: "draft" } });
-  if (!sale) {
-    return res.status(404).json({ message: "Черновик продажи не найден" });
-  }
-  const contractUrl = await generateContract(sale);
-  await Sale.update(
-    { status: "confirmed", contractUrl },
-    { where: { userId, status: "draft" } }
-  );
-
-  res.status(200).json({
-    message: "Продажа подтверждена. Договор сгенерирован.",
-    sale,
-    contractUrl,
-  });
-};
-
 exports.getSales = async (req, res) => {
   try {
     const userId = req.user.id; // Get the user's ID from the request
