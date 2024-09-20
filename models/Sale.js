@@ -67,9 +67,10 @@ const Sale = sequelize.define(
     contractUrl: {
       type: DataTypes.STRING,
       allowNull: true, // Will be populated later when the contract is generated
-      validate: {
-        isUrl: true, // Ensures contractUrl is a valid URL if provided
-      },
+    },
+    userBought: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // Will be populated later when the contract is generated
     },
   },
   {

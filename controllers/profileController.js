@@ -1,5 +1,4 @@
-const { UserProfile, BankDetails } = require('../models');
-const BASE_URL = 'https://api.intelectpravo.ru';
+const { UserProfile, BankDetails } = require("../models");
 
 // Получение базового профиля
 exports.getBasicProfile = async (req, res) => {
@@ -7,7 +6,7 @@ exports.getBasicProfile = async (req, res) => {
   const profile = await UserProfile.findOne({ where: { userId } });
   if (!profile) {
     return res.status(200).json({
-      message: 'Профиль не найден. Пожалуйста, заполните данные.',
+      message: "Профиль не найден. Пожалуйста, заполните данные.",
       profile: {},
     });
   }
@@ -47,7 +46,7 @@ exports.updateProfile = async (req, res) => {
       isConfirmed: false,
     });
     return res.status(201).json({
-      message: 'Профиль создан и данные сохранены.',
+      message: "Профиль создан и данные сохранены.",
       profile,
     });
   }
@@ -63,9 +62,9 @@ exports.updateProfile = async (req, res) => {
     phoneNumber,
   });
   if (profile.documentPhoto) {
-    profile.documentPhoto = `${BASE_URL}/${profile.documentPhoto}`;
+    profile.documentPhoto = `${process.env.BASE_URL}/${profile.documentPhoto}`;
   }
-  res.json({ message: 'Профиль обновлен.', profile });
+  res.json({ message: "Профиль обновлен.", profile });
 };
 
 // Загрузка фото документа
@@ -75,7 +74,7 @@ exports.uploadDocumentPhoto = async (req, res) => {
   await UserProfile.update({ documentPhoto: photoPath }, { where: { userId } });
   const fullPhotoPath = `${BASE_URL}/${photoPath}`;
   res.json({
-    message: 'Фото документа загружено.',
+    message: "Фото документа загружено.",
     documentPhoto: fullPhotoPath,
   });
 };
@@ -84,7 +83,7 @@ exports.uploadDocumentPhoto = async (req, res) => {
 exports.confirmProfile = async (req, res) => {
   const userId = req.user.id;
   await UserProfile.update({ isConfirmed: true }, { where: { userId } });
-  res.json({ message: 'Профиль подтвержден.' });
+  res.json({ message: "Профиль подтвержден." });
 };
 
 // Добавление банковских реквизитов
@@ -98,7 +97,7 @@ exports.addBankDetails = async (req, res) => {
     corrAccount,
     bic,
   });
-  res.json({ message: 'Банковские реквизиты добавлены.', bankDetails });
+  res.json({ message: "Банковские реквизиты добавлены.", bankDetails });
 };
 
 // Получение банковских реквизитов
@@ -108,7 +107,7 @@ exports.getBankDetails = async (req, res) => {
   if (!bankDetails) {
     return res
       .status(404)
-      .json({ message: 'Банковские реквизиты не найдены.' });
+      .json({ message: "Банковские реквизиты не найдены." });
   }
   res.json(bankDetails);
 };
