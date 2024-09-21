@@ -1,4 +1,4 @@
-const { Sale, BankDetails } = require("../models");
+const { Sale, BankDetails, UserProfile } = require("../models");
 const { generateContract } = require("../services/contractService");
 const { Op } = require("sequelize");
 const BASE_URL = process.env.BASE_URL; // Ensure BASE_URL is defined
@@ -94,8 +94,11 @@ exports.buyUserSales = async (req, res) => {
       return res.status(404).json({ error: "Sale not found" });
     }
 
+    const owner = await UserProfile.findOne({ where: { id: sale.userId } });
+    const buyer = await UserProfile.findOne({ where: { id: userId } });
+
     // Генерируем URL контракта
-    const contractUrl = await generateContract(sale);
+    const contractUrl = await generateContract(sale, owner, buyer);
 
     // Обновляем запись продажи с id покупателя и URL контракта
     sale.update(
