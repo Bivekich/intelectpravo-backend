@@ -62,6 +62,8 @@ exports.getSales = async (req, res) => {
       if (saleData.fileUrl) {
         saleData.fileUrl = `${BASE_URL}/${saleData.fileUrl}`; // Append BASE_URL to fileUrl
       }
+      saleData.isMy =
+        saleData.userId == userId || saleData.userBought == userId;
 
       return saleData; // Return the modified sale object
     });
@@ -96,9 +98,21 @@ exports.buyUserSales = async (req, res) => {
 
     const owner = await UserProfile.findOne({ where: { id: sale.userId } });
     const buyer = await UserProfile.findOne({ where: { id: userId } });
+    const owner_bank_details = await BankDetails.findOne({
+      where: { userId: sale.userId },
+    });
+    const buyer_bank_details = await BankDetails.findOne({
+      where: { userId: userId },
+    });
 
     // Генерируем URL контракта
-    const contractUrl = await generateContract(sale, owner, buyer);
+    const contractUrl = await generateContract(
+      sale,
+      owner,
+      buyer,
+      owner_bank_details,
+      buyer_bank_details
+    );
 
     // Обновляем запись продажи с id покупателя и URL контракта
     sale.update(

@@ -11,7 +11,7 @@ exports.getBasicProfile = async (req, res) => {
     });
   }
   if (profile.documentPhoto) {
-    profile.documentPhoto = `${BASE_URL}/${profile.documentPhoto}`;
+    profile.documentPhoto = `${process.env.BASE_URL}/${profile.documentPhoto}`;
   }
   res.json(profile);
 };
@@ -26,6 +26,7 @@ exports.updateProfile = async (req, res) => {
     passportSeries,
     passportNumber,
     passportIssuedBy,
+    passportCode,
     passportIssuedDate,
     email,
     phoneNumber,
@@ -40,6 +41,7 @@ exports.updateProfile = async (req, res) => {
       passportSeries,
       passportNumber,
       passportIssuedBy,
+      passportCode,
       passportIssuedDate,
       email,
       phoneNumber,
@@ -57,6 +59,7 @@ exports.updateProfile = async (req, res) => {
     passportSeries,
     passportNumber,
     passportIssuedBy,
+    passportCode,
     passportIssuedDate,
     email,
     phoneNumber,
@@ -72,7 +75,7 @@ exports.uploadDocumentPhoto = async (req, res) => {
   const userId = req.user.id;
   const photoPath = req.file.path;
   await UserProfile.update({ documentPhoto: photoPath }, { where: { userId } });
-  const fullPhotoPath = `${BASE_URL}/${photoPath}`;
+  const fullPhotoPath = `${process.env.BASE_URL}/${photoPath}`;
   res.json({
     message: "Фото документа загружено.",
     documentPhoto: fullPhotoPath,

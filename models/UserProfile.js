@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
 
-const UserProfile = sequelize.define('UserProfile', {
+const UserProfile = sequelize.define("UserProfile", {
   fullName: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -23,6 +23,10 @@ const UserProfile = sequelize.define('UserProfile', {
     allowNull: true,
   },
   passportIssuedBy: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  passportCode: {
     type: DataTypes.STRING,
     allowNull: true,
   },

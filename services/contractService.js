@@ -1,16 +1,86 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
+const NumberToWordsRu = require("number-to-words-ru"); // Необходимо установить: npm install number-to-words-ru
 
-exports.generateContract = async (sale, owner, buyer) => {
-  const contractPath = path.join(
-    __dirname,
-    `../contracts/contract_${sale.id}.pdf`
-  );
-
+exports.generateContract = async (
+  sale,
+  owner,
+  buyer,
+  owner_bank_details,
+  buyer_bank_details
+) => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
+  const owner_fio = owner.fullName.split(" ");
+  const buyer_fio = buyer.fullName.split(" ");
+
+  const months = [
+    "ЯНВАРЯ",
+    "ФЕВРАЛЯ",
+    "МАРТА",
+    "АПРЕЛЯ",
+    "МАЯ",
+    "ИЮНЯ",
+    "ИЮЛЯ",
+    "АВГУСТА",
+    "СЕНТЯБРЯ",
+    "ОКТЯБРЯ",
+    "НОЯБРЯ",
+    "ДЕКАБРЯ",
+  ];
+
+  const date = new Date();
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+
+  const formattedDate = `${day} ${month} ${year} ГОДА`;
+
+  let fileSizeInBytes;
+
+  const formatBytes = (bytes) => {
+    const sizes = ["байт", "KB", "MB", "GB", "TB"];
+    if (bytes === 0) return "0 байт";
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  fs.stat(sale.fileUrl, (err, stats) => {
+    if (err) {
+      console.error(`Ошибка при получении информации о файле: ${err}`);
+      return;
+    }
+
+    fileSizeInBytes = stats.size;
+  });
+  function formatCurrency(value) {
+    const rubles = Math.floor(value / 100); // Получаем рубли
+    const kopecks = value % 100; // Получаем копейки
+
+    // Форматирование чисел с пробелами
+    const rublesFormatted = rubles.toLocaleString("ru-RU");
+
+    // Преобразование числа в текст с правильными склонениями
+    const rublesInWords = NumberToWordsRu.convert(rubles, {
+      currency: "rub",
+      declension: "nominative",
+    }).toUpperCase();
+
+    // Формирование итоговой строки
+    return `${rublesFormatted} (${rublesInWords}) РУБЛЕЙ ${kopecks
+      .toString()
+      .padStart(2, "0")} КОПЕЕК`;
+  }
+
+  const documentNumber = `${String(sale.id).padStart(8, "0")}_${String(
+    owner.id
+  ).padStart(8, "0")}_${String(buyer.id).padStart(8, "0")}`;
+  const contractPath = path.join(
+    __dirname,
+    `../contracts/contract_${documentNumber}.pdf`
+  );
   // Define your multi-page HTML content
   const htmlContent = `
 <html>
@@ -123,11 +193,11 @@ exports.generateContract = async (sale, owner, buyer) => {
           </tr>
           <tr>
             <th class="green">Номер договора</th>
-            <td class="blue">№ ИПП-1/260824</td>
+            <td class="blue">№ ${documentNumber}</td>
           </tr>
           <tr>
             <th class="green">Дата договора</th>
-            <td class="blue">«26» АВГУСТА 2024 ГОДА</td>
+            <td class="blue">${formattedDate}</td>
           </tr>
           <tr></tr>
         </tbody>
@@ -146,42 +216,44 @@ exports.generateContract = async (sale, owner, buyer) => {
           <tr>
             <th class="yellow number">1.1.1.</th>
             <th class="yellow">ФАМИЛИЯ</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner_fio[0]}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.2.</th>
             <th class="yellow">Имя</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner_fio[1]}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.3.</th>
             <th class="yellow">Отчество</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner_fio[2]}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.4.</th>
             <th class="yellow">Серия номер паспорта</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner.passportSeries} ${
+    owner.passportNumber
+  }</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.5.</th>
             <th class="yellow">Дата выдачи</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner.passportIssuedDate}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.6.</th>
             <th class="yellow">Код подразделения</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner.passportCode}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.7.</th>
             <th class="yellow">Кем выдан</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner.passportIssuedBy}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.8.</th>
             <th class="yellow">Адрес регистрации</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner.address}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.9.</th>
@@ -192,22 +264,22 @@ exports.generateContract = async (sale, owner, buyer) => {
           <tr>
             <th class="yellow number">1.1.9.1.</th>
             <th class="yellow">Рассчетный счёт</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner_bank_details.accountNumber}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.9.2.</th>
             <th class="yellow">КОРРЕСПОНДЕТСКИЙ СЧЁТ</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner_bank_details.corrAccount}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.9.3.</th>
             <th class="yellow">БИК БАНКА</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner_bank_details.bic}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.9.4.</th>
             <th class="yellow">Номер банковской карты</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${owner_bank_details.cardNumber}</td>
           </tr>
           <tr></tr>
           <tr>
@@ -217,42 +289,44 @@ exports.generateContract = async (sale, owner, buyer) => {
           <tr>
             <th class="yellow number">1.2.1.</th>
             <th class="yellow">ФАМИЛИЯ</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer_fio[0]}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.2.</th>
             <th class="yellow">Имя</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer_fio[1]}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.3.</th>
             <th class="yellow">Отчество</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer_fio[2]}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.4.</th>
             <th class="yellow">Серия номер паспорта</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer.passportSeries} ${
+    buyer.passportNumber
+  }</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.5.</th>
             <th class="yellow">Дата выдачи</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer.passportIssuedDate}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.6.</th>
             <th class="yellow">Код подразделения</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer.passportCode}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.7.</th>
             <th class="yellow">Кем выдан</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer.passportIssuedBy}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.8.</th>
             <th class="yellow">Адрес регистрации</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer.address}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.9.</th>
@@ -263,22 +337,22 @@ exports.generateContract = async (sale, owner, buyer) => {
           <tr>
             <th class="yellow number">1.2.9.1.</th>
             <th class="yellow">Рассчетный счёт</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer_bank_details.accountNumber}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.9.2.</th>
             <th class="yellow">КОРРЕСПОНДЕТСКИЙ СЧЁТ</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer_bank_details.corrAccount}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.9.3.</th>
             <th class="yellow">БИК БАНКА</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer_bank_details.bic}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.9.4.</th>
             <th class="yellow">Номер банковской карты</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${buyer_bank_details.cardNumber}</td>
           </tr>
           <tr></tr>
         </tbody>
@@ -299,24 +373,26 @@ exports.generateContract = async (sale, owner, buyer) => {
           <tr>
             <th class="orange number">2.1.</th>
             <th class="orange">НАИМЕНОВАНИЕ ПРОИЗВЕДЕНИЯ</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${sale.title}</td>
           </tr>
           <tr>
             <th class="orange number">2.2.</th>
             <th class="orange">НАИМЕНОВАНИЕ ФАЙЛА, ФОРМАТ, РАЗМЕР</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${sale.fileUrl.split("/").at(-1)} ${formatBytes(
+    fileSizeInBytes
+  )}</td>
           </tr>
           <tr>
             <th class="orange number">2.3.</th>
             <th class="orange">
               СТОИМОСТЬ ПЕРЕДАЧИ ИСКЛЮЧИТЕЛЬНОГ ПРАВА НА ПРОИЗВЕДЕНИЕ:
             </th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${formatCurrency(sale.price * 100)}</td>
           </tr>
           <tr>
             <th class="orange number">2.4.</th>
             <th class="orange">СОДЕРДЖАНИЕ И КРАТКОЕ ОПИСАНИЕ ПРОИЗВЕДЕНИЯ:</th>
-            <td class="blue">Bdfyjd</td>
+            <td class="blue">${sale.description}</td>
           </tr>
           <tr>
             <th class="orange number">2.4.</th>
