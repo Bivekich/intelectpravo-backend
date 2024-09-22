@@ -16,6 +16,20 @@ exports.generateContract = async (
   const owner_fio = owner.fullName.split(" ");
   const buyer_fio = buyer.fullName.split(" ");
 
+  const contractsDir = "contracts/";
+
+  if (!fs.existsSync(contractsDir)) {
+    fs.mkdirSync(contractsDir, { recursive: true });
+  }
+
+  const documentNumber = `${String(sale.id).padStart(8, "0")}_${String(
+    owner.id
+  ).padStart(8, "0")}_${String(buyer.id).padStart(8, "0")}`;
+  const contractPath = path.join(
+    __dirname,
+    `../contracts/contract_${documentNumber}.pdf`
+  );
+
   const months = [
     "ЯНВАРЯ",
     "ФЕВРАЛЯ",
@@ -74,13 +88,6 @@ exports.generateContract = async (
       .padStart(2, "0")} КОПЕЕК`;
   }
 
-  const documentNumber = `${String(sale.id).padStart(8, "0")}_${String(
-    owner.id
-  ).padStart(8, "0")}_${String(buyer.id).padStart(8, "0")}`;
-  const contractPath = path.join(
-    __dirname,
-    `../contracts/contract_${documentNumber}.pdf`
-  );
   // Define your multi-page HTML content
   const htmlContent = `
 <html>

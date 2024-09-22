@@ -131,7 +131,6 @@ exports.buyUserSales = async (req, res) => {
       .json({ error: "An error occurred while processing the sale" });
   }
 };
-
 exports.markPaid = async (req, res) => {
   const userId = req.user.id;
   const { sid } = req.query; // Получаем sid из строки запроса
