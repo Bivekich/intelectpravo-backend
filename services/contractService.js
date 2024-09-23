@@ -10,7 +10,10 @@ exports.generateContract = async (
   owner_bank_details,
   buyer_bank_details
 ) => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: true,
+  });
   const page = await browser.newPage();
 
   const owner_fio = owner.fullName.split(" ");
