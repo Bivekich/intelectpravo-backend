@@ -45,32 +45,53 @@ exports.createOrUpdateSale = async (req, res) => {
 
 exports.getSales = async (req, res) => {
   try {
-    const userId = req.user.id; // Get the user's ID from the request
-    const { limit, offset } = req.body; // Pagination parameters from the request body
+    const userId = req.user.id; // Получаем userId из токена
+    const { limit = 10, offset = 0, search = "" } = req.query; // Параметры пагинации из строки запроса
 
-    // Fetch sales with pagination
+    // Получаем продажи с фильтрацией по названию и пагинацией
     const sales = await Sale.findAll({
-      where: {}, // Filter sales by user ID
-      limit, // Limit the number of results
-      offset, // Skip the first 'offset' results
-      order: [["id", "DESC"]],
+      where: {
+        title: {
+          [Op.like]: `%${search}%`, // Подстрочный поиск по названию
+        },
+        userId, // Фильтр по userId
+      },
+      limit: parseInt(limit), // Лимит результатов
+      offset: parseInt(offset), // Пропуск первых 'offset' результатов
+      order: [["id", "DESC"]], // Сортировка по id в порядке убывания
     });
 
-    // Modify fileUrl if it exists
+    // Подсчет общего количества продаж с учетом фильтрации
+    const filteredSalesCount = await Sale.count({
+      where: {
+        title: {
+          [Op.like]: `%${search}%`, // Тот же фильтр по названию
+        },
+        userId, // Фильтр по userId
+      },
+    });
+
+    // Модифицируем данные продаж (например, добавляем полный путь к файлу)
     const modifiedSales = sales.map((sale) => {
-      const saleData = sale.get({ plain: true }); // Convert to plain object
+      const saleData = sale.get({ plain: true }); // Преобразуем в обычный объект
       if (saleData.fileUrl) {
-        saleData.fileUrl = `${BASE_URL}/${saleData.fileUrl}`; // Append BASE_URL to fileUrl
+        saleData.fileUrl = `${BASE_URL}/${saleData.fileUrl}`; // Добавляем BASE_URL к fileUrl
       }
+      // Определяем, принадлежит ли продажа пользователю или была куплена им
       saleData.isMy =
-        saleData.userId == userId || saleData.userBought == userId;
+        saleData.userId === userId || saleData.userBought === userId;
 
-      return saleData; // Return the modified sale object
+      return saleData; // Возвращаем модифицированный объект продажи
     });
 
-    res.status(200).json(modifiedSales); // Send the modified sales as response
+    // Отправляем ответ с модифицированными продажами и общим количеством
+    res.status(200).json({
+      sales: modifiedSales,
+      count: filteredSalesCount,
+    });
   } catch (error) {
-    res.status(500).json({ error: "An error occurred while fetching sales." }); // Error handling
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while fetching sales." });
   }
 };
 exports.buyUserSales = async (req, res) => {

@@ -26,13 +26,8 @@ Content-Type: multipart/form-data
 ###
 
 ### Получение всех продаж
-GET http://localhost:3000/sale/sales
+GET http://localhost:3000/sale/sales?limit=0&offset=10&search=qewr
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ2bC5lYmVsLnRtQGdtYWlsLmNvbSIsImZ1bGxOYW1lIjoi0JjQstCw0L3QvtCyINCY0LLQsNC9INCY0LLQsNC90L7QstC40YciLCJpYXQiOjE3MjY5MzcyMTcsImV4cCI6MTcyNzAyMzYxN30.buXqH5diTESKN9SY0dQuiFGJ4Ug9eMiugr9bhTKDxnE
-
-{
-  "limit": 0,
-  "offset": 10,
-}
 
 ###
 
