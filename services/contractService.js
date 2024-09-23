@@ -28,10 +28,8 @@ exports.generateContract = async (
   const documentNumber = `${String(sale.id).padStart(8, "0")}_${String(
     owner.id
   ).padStart(8, "0")}_${String(buyer.id).padStart(8, "0")}`;
-  const contractPath = path.join(
-    __dirname,
-    `../contracts/contract_${documentNumber}.pdf`
-  );
+  const docname = `contracts/contract_${documentNumber}.pdf`;
+  const contractPath = path.join(__dirname, `../${docname}`);
 
   const months = [
     "ЯНВАРЯ",
@@ -575,26 +573,5 @@ exports.generateContract = async (
 
   await browser.close();
 
-  return contractPath;
+  return docname;
 };
-
-// exports.generateContract = async (sale, owner, buyer) => {
-//   const contractContent = `
-//     Договор продажи произведения: ${sale.title}
-//     Описание: ${sale.description}
-//     Цена: ${sale.price}
-//     Номер счета: ${sale.accountNumber}
-//     Тип продажи: ${sale.saleType === "license" ? "Лицензия" : "Права"}
-//     ${
-//       sale.saleType === "license"
-//         ? `Срок действия лицензии: ${sale.licenseTerm} лет`
-//         : ""
-//     }
-//   `;
-//   const contractPath = path.join(
-//     __dirname,
-//     `../contracts/contract_${sale.id}.txt`
-//   );
-//   fs.writeFileSync(contractPath, contractContent);
-//   return contractPath;
-// };
