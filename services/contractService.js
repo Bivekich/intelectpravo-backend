@@ -16,9 +16,6 @@ exports.generateContract = async (
   });
   const page = await browser.newPage();
 
-  const owner_fio = owner.fullName.split(" ");
-  const buyer_fio = buyer.fullName.split(" ");
-
   const contractsDir = "contracts/";
 
   if (!fs.existsSync(contractsDir)) {
@@ -224,17 +221,17 @@ exports.generateContract = async (
           <tr>
             <th class="yellow number">1.1.1.</th>
             <th class="yellow">ФАМИЛИЯ</th>
-            <td class="blue">${owner_fio[0]}</td>
+            <td class="blue">${owner.surname}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.2.</th>
             <th class="yellow">Имя</th>
-            <td class="blue">${owner_fio[1]}</td>
+            <td class="blue">${owner.name}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.3.</th>
             <th class="yellow">Отчество</th>
-            <td class="blue">${owner_fio[2]}</td>
+            <td class="blue">${owner.patronymic}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.4.</th>
@@ -297,17 +294,17 @@ exports.generateContract = async (
           <tr>
             <th class="yellow number">1.2.1.</th>
             <th class="yellow">ФАМИЛИЯ</th>
-            <td class="blue">${buyer_fio[0]}</td>
+            <td class="blue">${buyer.surname}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.2.</th>
             <th class="yellow">Имя</th>
-            <td class="blue">${buyer_fio[1]}</td>
+            <td class="blue">${buyer.name}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.3.</th>
             <th class="yellow">Отчество</th>
-            <td class="blue">${buyer_fio[2]}</td>
+            <td class="blue">${buyer.patronymic}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.4.</th>

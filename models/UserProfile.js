@@ -2,9 +2,17 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 
 const UserProfile = sequelize.define("UserProfile", {
-  fullName: {
+  name: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
+  },
+  surname: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  patronymic: {
+    type: DataTypes.STRING,
+    allowNull: true,
   },
   birthDate: {
     type: DataTypes.DATE,
@@ -55,6 +63,15 @@ const UserProfile = sequelize.define("UserProfile", {
     type: DataTypes.STRING,
     allowNull: true,
     unique: true,
+  },
+  admin: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
 });
 
