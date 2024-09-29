@@ -3,17 +3,13 @@ const { sendEmailWithCode } = require("../services/emailService");
 
 // Получение базового профиля
 exports.getBasicProfile = async (req, res) => {
-  let userId = req.user.id;
-  let profile = await UserProfile.findOne({ where: { userId } });
+  const userId = req.user.id;
+  const profile = await UserProfile.findOne({ where: { userId } });
   if (!profile) {
     return res.status(200).json({
       message: "Профиль не найден. Пожалуйста, заполните данные.",
       profile: {},
     });
-  }
-  if (profile.admin) {
-    userId = process.env.ADMIN_ID;
-    profile = await UserProfile.findOne({ where: { userId } });
   }
   if (profile.documentPhoto) {
     profile.documentPhoto = `${process.env.BASE_URL}/${profile.documentPhoto}`;

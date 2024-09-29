@@ -54,7 +54,6 @@ exports.getSales = async (req, res) => {
         title: {
           [Op.like]: `%${search}%`, // Подстрочный поиск по названию
         },
-        userId, // Фильтр по userId
       },
       limit: parseInt(limit), // Лимит результатов
       offset: parseInt(offset), // Пропуск первых 'offset' результатов
@@ -67,7 +66,6 @@ exports.getSales = async (req, res) => {
         title: {
           [Op.like]: `%${search}%`, // Тот же фильтр по названию
         },
-        userId, // Фильтр по userId
       },
     });
 

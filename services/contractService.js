@@ -28,6 +28,10 @@ exports.generateContract = async (
   const docname = `contracts/contract_${documentNumber}.pdf`;
   const contractPath = path.join(__dirname, `../${docname}`);
 
+  if (fs.existsSync(contractPath)) {
+    return docname;
+  }
+
   const months = [
     "ЯНВАРЯ",
     "ФЕВРАЛЯ",
@@ -207,10 +211,9 @@ exports.generateContract = async (
           <tr></tr>
         </tbody>
       </table>
-
       <table style="border-top: 0">
-        <tbody>
-          <tr>
+      <tbody>
+      <tr>
             <th class="yellow number">1.</th>
             <th colspan="2" class="yellow title">Реквизиты сторон договора</th>
           </tr>
@@ -221,24 +224,38 @@ exports.generateContract = async (
           <tr>
             <th class="yellow number">1.1.1.</th>
             <th class="yellow">ФАМИЛИЯ</th>
-            <td class="blue">${owner.surname}</td>
+            <td class="blue">${owner.admin ? "Капустин" : owner.surname}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.2.</th>
             <th class="yellow">Имя</th>
-            <td class="blue">${owner.name}</td>
+            <td class="blue">${owner.admin ? "Олег" : owner.name}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.3.</th>
             <th class="yellow">Отчество</th>
-            <td class="blue">${owner.patronymic}</td>
+            <td class="blue">${
+              owner.admin ? "Викторович" : owner.patronymic
+            }</td>
           </tr>
+          ${
+            owner.admin
+              ? `
+              <tr>
+                <th class="yellow number">1.1.4.</th>
+                <th class="yellow">ИНН</th>
+                <td class="blue">132707187648</td>
+              </tr>
+              <tr>
+                <th class="yellow number">1.1.5.</th>
+                <th class="yellow">ОГРНИП</th>
+                <td class="blue">324774600051330</td>
+              </tr>`
+              : `
           <tr>
             <th class="yellow number">1.1.4.</th>
             <th class="yellow">Серия номер паспорта</th>
-            <td class="blue">${owner.passportSeries} ${
-    owner.passportNumber
-  }</td>
+            <td class="blue">${owner.passportSeries} ${owner.passportNumber}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.5.</th>
@@ -254,38 +271,66 @@ exports.generateContract = async (
             <th class="yellow number">1.1.7.</th>
             <th class="yellow">Кем выдан</th>
             <td class="blue">${owner.passportIssuedBy}</td>
-          </tr>
+          </tr>`
+          }
+
           <tr>
-            <th class="yellow number">1.1.8.</th>
+            <th class="yellow number">${owner.admin ? `1.1.6` : `1.1.8.`}</th>
             <th class="yellow">Адрес регистрации</th>
-            <td class="blue">${owner.address}</td>
+            <td class="blue">${
+              owner.admin
+                ? `125284, г. Москва, ул. Беговая, д. 32, кв. 119;`
+                : owner.address
+            }</td>
           </tr>
           <tr>
-            <th class="yellow number">1.1.9.</th>
+            <th class="yellow number">${owner.admin ? `1.1.7` : `1.1.9.`}</th>
             <th colspan="2" class="yellow title">
               БАНКОВСКИЕ РЕКВИЗИТЫ ПРАВООБЛАДАТЕЛЯ
             </th>
           </tr>
           <tr>
-            <th class="yellow number">1.1.9.1.</th>
+            <th class="yellow number">${
+              owner.admin ? `1.1.7.1` : `1.1.9.1`
+            }</th>
             <th class="yellow">Рассчетный счёт</th>
-            <td class="blue">${owner_bank_details.accountNumber}</td>
+            <td class="blue">${
+              owner.admin
+                ? "40802810738000385127"
+                : owner_bank_details.accountNumber
+            }</td>
           </tr>
           <tr>
-            <th class="yellow number">1.1.9.2.</th>
+            <th class="yellow number">${
+              owner.admin ? `1.1.7.2` : `1.1.9.2`
+            }</th>
             <th class="yellow">КОРРЕСПОНДЕТСКИЙ СЧЁТ</th>
-            <td class="blue">${owner_bank_details.corrAccount}</td>
+            <td class="blue">${
+              owner.admin
+                ? "30101810400000000225"
+                : owner_bank_details.corrAccount
+            }</td>
           </tr>
           <tr>
-            <th class="yellow number">1.1.9.3.</th>
+            <th class="yellow number">${
+              owner.admin ? `1.1.7.3` : `1.1.9.3`
+            }</th>
             <th class="yellow">БИК БАНКА</th>
-            <td class="blue">${owner_bank_details.bic}</td>
+            <td class="blue">${
+              owner.admin ? "044525225" : owner_bank_details.bic
+            }</td>
           </tr>
-          <tr>
-            <th class="yellow number">1.1.9.4.</th>
-            <th class="yellow">Номер банковской карты</th>
-            <td class="blue">${owner_bank_details.cardNumber}</td>
-          </tr>
+          ${
+            owner.admin
+              ? ``
+              : `
+            <tr>
+              <th class="yellow number">1.1.9.4.</th>
+              <th class="yellow">Номер банковской карты</th>
+              <td class="blue">${owner_bank_details.cardNumber}</td>
+            </tr>
+            `
+          }
           <tr></tr>
           <tr>
             <th class="yellow number">1.2.</th>
@@ -294,24 +339,38 @@ exports.generateContract = async (
           <tr>
             <th class="yellow number">1.2.1.</th>
             <th class="yellow">ФАМИЛИЯ</th>
-            <td class="blue">${buyer.surname}</td>
+            <td class="blue">${buyer.admin ? "Капустин" : buyer.surname}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.2.</th>
             <th class="yellow">Имя</th>
-            <td class="blue">${buyer.name}</td>
+            <td class="blue">${buyer.admin ? "Олег" : buyer.name}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.3.</th>
             <th class="yellow">Отчество</th>
-            <td class="blue">${buyer.patronymic}</td>
+            <td class="blue">${
+              buyer.admin ? "Викторович" : buyer.patronymic
+            }</td>
           </tr>
+          ${
+            buyer.admin
+              ? `
+              <tr>
+                <th class="yellow number">1.2.4.</th>
+                <th class="yellow">ИНН</th>
+                <td class="blue">132707187648</td>
+              </tr>
+              <tr>
+                <th class="yellow number">1.2.5.</th>
+                <th class="yellow">ОГРНИП</th>
+                <td class="blue">324774600051330</td>
+              </tr>`
+              : `
           <tr>
             <th class="yellow number">1.2.4.</th>
             <th class="yellow">Серия номер паспорта</th>
-            <td class="blue">${buyer.passportSeries} ${
-    buyer.passportNumber
-  }</td>
+            <td class="blue">${buyer.passportSeries} ${buyer.passportNumber}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.5.</th>
@@ -327,38 +386,65 @@ exports.generateContract = async (
             <th class="yellow number">1.2.7.</th>
             <th class="yellow">Кем выдан</th>
             <td class="blue">${buyer.passportIssuedBy}</td>
-          </tr>
+          </tr>`
+          }
+
           <tr>
-            <th class="yellow number">1.2.8.</th>
+            <th class="yellow number">${buyer.admin ? `1.2.6` : `1.2.8.`}</th>
             <th class="yellow">Адрес регистрации</th>
-            <td class="blue">${buyer.address}</td>
+            <td class="blue">${
+              buyer.admin
+                ? `125284, г. Москва, ул. Беговая, д. 32, кв. 119;`
+                : buyer.address
+            }</td>
           </tr>
           <tr>
-            <th class="yellow number">1.2.9.</th>
+            <th class="yellow number">${buyer.admin ? `1.2.7` : `1.2.9.`}</th>
             <th colspan="2" class="yellow title">
               БАНКОВСКИЕ РЕКВИЗИТЫ ПРиобретателя
             </th>
           </tr>
           <tr>
-            <th class="yellow number">1.2.9.1.</th>
+            <th class="yellow number">${
+              buyer.admin ? `1.2.7.1` : `1.2.9.1`
+            }</th>
             <th class="yellow">Рассчетный счёт</th>
-            <td class="blue">${buyer_bank_details.accountNumber}</td>
+            <td class="blue">${
+              buyer.admin
+                ? "40802810738000385127"
+                : buyer_bank_details.accountNumber
+            }</td>
           </tr>
           <tr>
-            <th class="yellow number">1.2.9.2.</th>
+            <th class="yellow number">${
+              buyer.admin ? `1.2.7.2` : `1.2.9.2`
+            }</th>
             <th class="yellow">КОРРЕСПОНДЕТСКИЙ СЧЁТ</th>
-            <td class="blue">${buyer_bank_details.corrAccount}</td>
+            <td class="blue">${
+              buyer.admin
+                ? "30101810400000000225"
+                : buyer_bank_details.corrAccount
+            }</td>
           </tr>
           <tr>
-            <th class="yellow number">1.2.9.3.</th>
+            <th class="yellow number">${
+              buyer.admin ? `1.2.7.3` : `1.2.9.3`
+            }</th>
             <th class="yellow">БИК БАНКА</th>
-            <td class="blue">${buyer_bank_details.bic}</td>
+            <td class="blue">${
+              buyer.admin ? "044525225" : buyer_bank_details.bic
+            }</td>
           </tr>
-          <tr>
-            <th class="yellow number">1.2.9.4.</th>
-            <th class="yellow">Номер банковской карты</th>
-            <td class="blue">${buyer_bank_details.cardNumber}</td>
-          </tr>
+          ${
+            !buyer.admin &&
+            `
+            <tr>
+              <th class="yellow number">1.2.9.4.</th>
+              <th class="yellow">Номер банковской карты</th>
+              <td class="blue">${buyer_bank_details.cardNumber}</td>
+            </tr>
+            `
+          }
           <tr></tr>
         </tbody>
       </table>
