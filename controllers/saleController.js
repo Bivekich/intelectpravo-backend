@@ -21,8 +21,8 @@ exports.createOrUpdateSale = async (req, res) => {
       price,
       accountNumber,
       saleType,
-      isExclusive: saleType === "license" ? isExclusive : null,
-      licenseTerm: saleType === "license" ? licenseTerm : null,
+      isExclusive: saleType === "license" ? (isExclusive ? true : false) : null,
+      licenseTerm: saleType === "license" ? licenseTerm : null, // Ensure licenseTerm is an integer if it's provided
       status: "confirmed",
     });
   } else {
