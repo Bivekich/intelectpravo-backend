@@ -89,7 +89,15 @@ exports.generateContract = async (
       .toString()
       .padStart(2, "0")} КОПЕЕК`;
   }
+  function formatDateToDDMMYYYY(date) {
+    // Extract day, month, and year
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
+    const year = date.getFullYear();
 
+    // Return the formatted date as dd.mm.yyyy
+    return `${day}.${month}.${year}`;
+  }
   // Define your multi-page HTML content
   const htmlContent = `
 <html>
@@ -255,12 +263,16 @@ exports.generateContract = async (
           <tr>
             <th class="yellow number">1.1.4.</th>
             <th class="yellow">Серия номер паспорта</th>
-            <td class="blue">${owner.passportSeries} ${owner.passportNumber}</td>
+            <td class="blue">${owner.passportSeries} ${
+                  owner.passportNumber
+                }</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.5.</th>
             <th class="yellow">Дата выдачи</th>
-            <td class="blue">${owner.passportIssuedDate}</td>
+            <td class="blue">${formatDateToDDMMYYYY(
+              new Date(owner.passportIssuedDate)
+            )}</td>
           </tr>
           <tr>
             <th class="yellow number">1.1.6.</th>
@@ -370,12 +382,16 @@ exports.generateContract = async (
           <tr>
             <th class="yellow number">1.2.4.</th>
             <th class="yellow">Серия номер паспорта</th>
-            <td class="blue">${buyer.passportSeries} ${buyer.passportNumber}</td>
+            <td class="blue">${buyer.passportSeries} ${
+                  buyer.passportNumber
+                }</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.5.</th>
             <th class="yellow">Дата выдачи</th>
-            <td class="blue">${buyer.passportIssuedDate}</td>
+            <td class="blue">${formatDateToDDMMYYYY(
+              new Date(buyer.passportIssuedDate)
+            )}</td>
           </tr>
           <tr>
             <th class="yellow number">1.2.6.</th>
