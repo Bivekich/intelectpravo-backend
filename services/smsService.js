@@ -4,7 +4,9 @@ require("dotenv").config();
 exports.sendSMSWithCode = async (number, code) => {
   try {
     // Encode the text for the GET request
-    const text = encodeURIComponent(`Ваш код подтверждения: ${code}`);
+    const text = encodeURIComponent(
+      `Intelectpravo ваш код подтверждения: ${code}`
+    );
 
     const response = await axios.get(
       `https://gate.smsaero.ru/v2/sms/send`, // Base URL without credentials
