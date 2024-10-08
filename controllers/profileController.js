@@ -15,7 +15,7 @@ exports.getBasicProfile = async (req, res) => {
     profile.documentPhoto = `${process.env.BASE_URL}/${profile.documentPhoto}`;
   }
   if (profile.phoneNumber) {
-    profile.phoneNumber = `+${profile.phoneNumber}`;
+    profile.phoneNumber = `${profile.phoneNumber}`;
   }
   res.json(profile);
 };
