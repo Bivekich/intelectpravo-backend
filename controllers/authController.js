@@ -30,7 +30,7 @@ exports.login = async (req, res) => {
   const phone = user.phoneNumber; // Предполагается, что у пользователя есть email
   res
     .status(200)
-    .json({ message: "Профиль найден. Введите пароль", phone: `+${phone}` });
+    .json({ message: "Профиль найден. Введите пароль", phone: `${phone}` });
 };
 
 exports.loginByPass = async (req, res) => {
@@ -38,7 +38,9 @@ exports.loginByPass = async (req, res) => {
 
   try {
     // Try to find the user by phone number
-    const user = await UserProfile.findOne({ where: { phoneNumber } });
+    const user = await UserProfile.findOne({
+      where: { phoneNumber: phoneNumber },
+    });
 
     if (!user) {
       return res
@@ -58,7 +60,11 @@ exports.loginByPass = async (req, res) => {
     expirationTime.setMinutes(expirationTime.getMinutes() + 10);
 
     // Save the code in the database with an expiration time
-    await Code.create({ phoneNumber, code, expiresAt: expirationTime });
+    await Code.create({
+      phoneNumber: phoneNumber,
+      code,
+      expiresAt: expirationTime,
+    });
 
     // Send the code via email (You might want to adjust this to send via SMS instead)
     await sendSMSWithCode(normalizePhoneNumber(user.phoneNumber), code);
@@ -80,7 +86,7 @@ exports.register = async (req, res) => {
   }
   // If user does not exist, create a new user
   user = await User.create({
-    phone: normalizePhoneNumber(phone),
+    phone: phone,
     name,
     surname,
     patronymic,
@@ -93,7 +99,7 @@ exports.register = async (req, res) => {
     name: user.name,
     surname: user.surname,
     patronymic: user.patronymic,
-    phoneNumber: normalizePhoneNumber(user.phone), // Save phone number
+    phoneNumber: user.phone, // Save phone number
     birthDate: null,
     address: null,
     passportSeries: null,
