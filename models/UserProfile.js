@@ -56,12 +56,12 @@ const UserProfile = sequelize.define("UserProfile", {
   },
   email: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     unique: true,
   },
   phoneNumber: {
     type: DataTypes.STRING,
-    allowNull: true,
+    allowNull: false,
     unique: true,
   },
   admin: {

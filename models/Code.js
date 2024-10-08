@@ -1,8 +1,8 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
 
-const Code = sequelize.define('Code', {
-  email: {
+const Code = sequelize.define("Code", {
+  phoneNumber: {
     type: DataTypes.STRING,
     allowNull: false,
   },

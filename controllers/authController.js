@@ -1,6 +1,6 @@
 // controllers/authController.js
 const { User, UserProfile, Code } = require("../models");
-const { sendEmailWithCode } = require("../services/emailService");
+const { sendSMSWithCode } = require("../services/smsService");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -14,29 +14,31 @@ exports.login = async (req, res) => {
       .json({ message: "Логин (email или номер телефона) не указан." });
   }
 
-  // Попробуйте найти пользователя по email
-  let user = await User.findOne({ where: { email: login } });
+  // Попробуйте найти пользователя по номеру телефона
+  let user = await UserProfile.findOne({ where: { phoneNumber: login } });
+
   if (!user) {
-    // Если не найден, попробуйте найти по номеру телефона
-    user = await UserProfile.findOne({ where: { phoneNumber: login } });
+    user = await UserProfile.findOne({ where: { email: login } });
   }
+
   if (!user) {
     return res
       .status(404)
       .json({ message: "Пользователь не найден. Зарегистрируйтесь." });
   }
 
-  const email = user.email; // Предполагается, что у пользователя есть email
+  const phone = user.phoneNumber; // Предполагается, что у пользователя есть email
   res
     .status(200)
-    .json({ message: "Профиль найден. Введите пароль", email: email });
+    .json({ message: "Профиль найден. Введите пароль", phone: `+${phone}` });
 };
+
 exports.loginByPass = async (req, res) => {
-  const { email, password } = req.body;
+  const { phoneNumber, password } = req.body;
 
   try {
-    // Try to find the user by email
-    const user = await User.findOne({ where: { email } });
+    // Try to find the user by phone number
+    const user = await UserProfile.findOne({ where: { phoneNumber } });
 
     if (!user) {
       return res
@@ -56,10 +58,10 @@ exports.loginByPass = async (req, res) => {
     expirationTime.setMinutes(expirationTime.getMinutes() + 10);
 
     // Save the code in the database with an expiration time
-    await Code.create({ email, code, expiresAt: expirationTime });
+    await Code.create({ phoneNumber, code, expiresAt: expirationTime });
 
-    // Send the code via email
-    await sendEmailWithCode(email, code);
+    // Send the code via email (You might want to adjust this to send via SMS instead)
+    await sendSMSWithCode(normalizePhoneNumber(user.phoneNumber), code);
 
     res.status(200).json({ message: "Код отправлен на вашу почту" });
   } catch (error) {
@@ -69,20 +71,29 @@ exports.loginByPass = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-  const { email, name, surname, patronymic, password } = req.body;
-  let user = await User.findOne({ where: { email } });
+  const { phone, name, surname, patronymic, password } = req.body;
+  let user = await UserProfile.findOne({ where: { phoneNumber: phone } });
   if (user) {
     return res
       .status(400)
       .json({ message: "Пользователь уже существует. Авторизуйтесь." });
   }
-  user = await User.create({ email, name, surname, patronymic, password });
+  // If user does not exist, create a new user
+  user = await User.create({
+    phone: normalizePhoneNumber(phone),
+    name,
+    surname,
+    patronymic,
+    password,
+  });
+
   await UserProfile.create({
     userId: user.id,
-    email: user.email,
+    email: null,
     name: user.name,
     surname: user.surname,
     patronymic: user.patronymic,
+    phoneNumber: normalizePhoneNumber(user.phone), // Save phone number
     birthDate: null,
     address: null,
     passportSeries: null,
@@ -97,23 +108,53 @@ exports.register = async (req, res) => {
 };
 
 exports.verifyCode = async (req, res) => {
-  const { email, code } = req.body;
-  const savedCode = await Code.findOne({ where: { email, code } });
+  const { phoneNumber, code } = req.body;
+  const savedCode = await Code.findOne({ where: { phoneNumber, code } });
+
   if (!savedCode || new Date() > savedCode.expiresAt) {
     return res
       .status(400)
       .json({ message: "Неправильный или просроченный код." });
   }
-  await User.update({ isVerified: true }, { where: { email } });
-  await Code.destroy({ where: { email, code } });
-  const user = await User.findOne({ where: { email } });
+
+  await User.update({ isVerified: true }, { where: { phone: phoneNumber } });
+  await Code.destroy({ where: { phoneNumber, code } });
+
+  const user = await UserProfile.findOne({ where: { phoneNumber } });
   const token = jwt.sign(
-    { id: user.id, email: user.email, fullName: user.fullName },
+    {
+      id: user.id,
+      email: user.email,
+      fullName: `${user.surname} ${user.name}`,
+    },
     process.env.JWT_SECRET,
     { expiresIn: "24h" }
   );
+
   res.status(200).json({
-    message: "Электронная почта успешно подтверждена.",
+    message: "Номер телефона успешно подтвержден.",
     token,
   });
+};
+
+const normalizePhoneNumber = (phoneNumber) => {
+  // Remove all non-digit characters
+  let cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
+
+  // If the number starts with '8', replace it with '7'
+  if (cleanedPhoneNumber.startsWith("8")) {
+    cleanedPhoneNumber = "7" + cleanedPhoneNumber.slice(1);
+  }
+
+  // If the number starts with a country code like '+7', make sure it's '7'
+  if (cleanedPhoneNumber.startsWith("7")) {
+    return cleanedPhoneNumber;
+  }
+
+  // If the number doesn't start with a country code, assume it's a local number (901...)
+  if (cleanedPhoneNumber.length === 10) {
+    return "7" + cleanedPhoneNumber; // Add '7' at the beginning
+  }
+
+  return cleanedPhoneNumber; // Return the cleaned phone number
 };
