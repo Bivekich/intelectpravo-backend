@@ -1,6 +1,6 @@
 // controllers/authController.js
 const { User, UserProfile, Code } = require("../models");
-const { sendSMSWithCode } = require("../services/smsService");
+const { sendCode } = require("../services/smsService");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -54,21 +54,7 @@ exports.loginByPass = async (req, res) => {
       return res.status(400).json({ message: "Неверный пароль" });
     }
 
-    // Generate a verification code
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    const expirationTime = new Date();
-    expirationTime.setMinutes(expirationTime.getMinutes() + 10);
-
-    // Save the code in the database with an expiration time
-    await Code.create({
-      phoneNumber: phoneNumber,
-      code,
-      expiresAt: expirationTime,
-    });
-
-    // Send the code via email (You might want to adjust this to send via SMS instead)
-    await sendSMSWithCode(normalizePhoneNumber(user.phoneNumber), code);
-
+    await sendCode(phoneNumber);
     res.status(200).json({ message: "Код отправлен на вашу почту" });
   } catch (error) {
     console.error(error);
@@ -77,7 +63,7 @@ exports.loginByPass = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-  const { phone, name, surname, patronymic, password } = req.body;
+  const { phone, name, email, surname, patronymic, password } = req.body;
   let user = await UserProfile.findOne({ where: { phoneNumber: phone } });
   if (user) {
     return res
@@ -86,7 +72,8 @@ exports.register = async (req, res) => {
   }
   // If user does not exist, create a new user
   user = await User.create({
-    phone: phone,
+    phone,
+    email,
     name,
     surname,
     patronymic,
@@ -95,7 +82,7 @@ exports.register = async (req, res) => {
 
   await UserProfile.create({
     userId: user.id,
-    email: null,
+    email: user.email,
     name: user.name,
     surname: user.surname,
     patronymic: user.patronymic,
@@ -109,6 +96,8 @@ exports.register = async (req, res) => {
     isConfirmed: false,
     password: user.password,
   });
+
+  await sendCode(user.phone);
 
   res.status(200).json({ message: "Пользователь успешно зарегистрирован" });
 };
@@ -141,26 +130,4 @@ exports.verifyCode = async (req, res) => {
     message: "Номер телефона успешно подтвержден.",
     token,
   });
-};
-
-const normalizePhoneNumber = (phoneNumber) => {
-  // Remove all non-digit characters
-  let cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
-
-  // If the number starts with '8', replace it with '7'
-  if (cleanedPhoneNumber.startsWith("8")) {
-    cleanedPhoneNumber = "7" + cleanedPhoneNumber.slice(1);
-  }
-
-  // If the number starts with a country code like '+7', make sure it's '7'
-  if (cleanedPhoneNumber.startsWith("7")) {
-    return cleanedPhoneNumber;
-  }
-
-  // If the number doesn't start with a country code, assume it's a local number (901...)
-  if (cleanedPhoneNumber.length === 10) {
-    return "7" + cleanedPhoneNumber; // Add '7' at the beginning
-  }
-
-  return cleanedPhoneNumber; // Return the cleaned phone number
 };

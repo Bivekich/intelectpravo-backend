@@ -1,8 +1,8 @@
-const nodemailer = require('nodemailer');
-require('dotenv').config();
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.timeweb.ru',
+  host: "smtp.timeweb.ru",
   port: 465,
   secure: true,
   auth: {
@@ -11,11 +11,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.sendEmailWithCode = async (email, code) => {
+exports.sendEmail = async (email, subject, text) => {
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Ваш код подтверждения',
-    text: `Ваш код подтверждения: ${code}`,
+    subject: subject,
+    text: text,
   });
 };

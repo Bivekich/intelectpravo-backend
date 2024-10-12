@@ -7,8 +7,12 @@ const {
   addBankDetails,
   getBankDetails,
   changePassword,
-  confirmEmail,
-  confirmEmailCode,
+  verifyAction,
+  checkVerifyAction,
+  getNotConfirmedFilledUsers,
+  disConfirmProfile,
+  addAdmin,
+  removeAdmin,
 } = require("../controllers/profileController");
 const authenticateToken = require("../middleware/auth");
 const upload = require("../middleware/upload");
@@ -23,10 +27,18 @@ router.post(
   uploadDocumentPhoto
 );
 router.post("/confirm", authenticateToken, confirmProfile);
+router.post("/disconfirm", authenticateToken, disConfirmProfile);
 router.post("/bank-details", authenticateToken, addBankDetails);
 router.get("/bank-details", authenticateToken, getBankDetails);
-router.get("/confirm-email-code", authenticateToken, confirmEmailCode);
-router.post("/confirm-email", authenticateToken, confirmEmail);
 router.post("/change-password", authenticateToken, changePassword);
+router.post("/verify-action", authenticateToken, verifyAction);
+router.post("/check-verify", authenticateToken, checkVerifyAction);
+router.post("/addAdmin", authenticateToken, addAdmin);
+router.post("/removeAdmin", authenticateToken, removeAdmin);
+router.get(
+  "/getNotConfirmedFilledUsers",
+  authenticateToken,
+  getNotConfirmedFilledUsers
+);
 
 module.exports = router;

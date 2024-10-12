@@ -1,5 +1,7 @@
 const { User, UserProfile, BankDetails, Code } = require("../models");
-const { sendEmailWithCode } = require("../services/emailService");
+const { sendEmail } = require("../services/emailService");
+const { sendCode } = require("../services/smsService");
+const { Op } = require("sequelize");
 
 // Получение базового профиля
 exports.getBasicProfile = async (req, res) => {
@@ -13,9 +15,6 @@ exports.getBasicProfile = async (req, res) => {
   }
   if (profile.documentPhoto) {
     profile.documentPhoto = `${process.env.BASE_URL}/${profile.documentPhoto}`;
-  }
-  if (profile.phoneNumber) {
-    profile.phoneNumber = `${profile.phoneNumber}`;
   }
   res.json(profile);
 };
@@ -92,13 +91,6 @@ exports.uploadDocumentPhoto = async (req, res) => {
   });
 };
 
-// Подтверждение профиля
-exports.confirmProfile = async (req, res) => {
-  const userId = req.user.id;
-  await UserProfile.update({ isConfirmed: true }, { where: { userId } });
-  res.json({ message: "Профиль подтвержден." });
-};
-
 // Добавление банковских реквизитов
 exports.addBankDetails = async (req, res) => {
   const userId = req.user.id;
@@ -157,33 +149,236 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-exports.confirmEmailCode = async (req, res) => {
-  const { email } = req.query;
-  // Generate a verification code
-  const code = Math.floor(1000 + Math.random() * 9000).toString();
-  const expirationTime = new Date();
-  expirationTime.setMinutes(expirationTime.getMinutes() + 10);
-
-  // Save the code in the database with an expiration time
-  await Code.create({ email, code, expiresAt: expirationTime });
-
-  // Send the code via email
-  await sendEmailWithCode(email, code);
-  res.status(200).json({ message: "Код подтверждения отправлен на почту" });
+exports.verifyAction = async (req, res) => {
+  const { phoneNumber } = req.body;
+  if (!phoneNumber)
+    return res.status(400).json({ message: "Номер телефона не был отправлен" });
+  await sendCode(phoneNumber);
+  res.status(200).json({
+    message: "Код отправлен Вам на телефон",
+  });
 };
-exports.confirmEmail = async (req, res) => {
-  const { email, code } = req.body;
+
+exports.checkVerifyAction = async (req, res) => {
+  const { phoneNumber, code } = req.body;
   const userId = req.user.id;
-  const savedCode = await Code.findOne({ where: { email, code } });
+  const savedCode = await Code.findOne({ where: { phoneNumber, code } });
   if (!savedCode || new Date() > savedCode.expiresAt) {
     return res
       .status(400)
       .json({ message: "Неправильный или просроченный код." });
   }
-  await User.update({ email: email }, { where: { id: userId } });
-  await UserProfile.update({ email: email }, { where: { id: userId } });
 
   res.status(200).json({
-    message: "Электронная почта успешно подтверждена.",
+    message: "Действие успешко подтверждено.",
   });
+};
+exports.getNotConfirmedFilledUsers = async (req, res) => {
+  try {
+    const currentUserId = req.user.id;
+    const userFields = [
+      "name",
+      "surname",
+      "patronymic",
+      "birthDate",
+      "address",
+      "passportSeries",
+      "passportNumber",
+      "passportIssuedBy",
+      "passportCode",
+      "passportIssuedDate",
+      "documentPhoto",
+      "email",
+      "phoneNumber",
+      "userId",
+    ]; // Полевые данные пользователя
+
+    const queryConditions = userFields.map((field) => ({
+      [field]: { [Op.ne]: null },
+    }));
+
+    // Получение пользователей, которые еще не подтверждены
+    const users = await UserProfile.findAll({
+      where: {
+        [Op.or]: [
+          {
+            [Op.and]: [
+              ...queryConditions,
+              { isConfirmed: false }, // Проверка на подтверждение
+            ],
+          },
+          { admin: true }, // Проверка на администратора
+        ],
+      },
+    });
+
+    // Исключение текущего пользователя из списка
+    const usersWithoutCurrent = users.filter(
+      (user) => user.userId !== currentUserId
+    );
+
+    // Получение банковских реквизитов для найденных пользователей
+    const userIds = usersWithoutCurrent.map((user) => user.userId);
+    const bankDetails = await BankDetails.findAll({
+      where: {
+        userId: userIds,
+      },
+    });
+
+    // Создание массива с данными пользователей и их банковскими реквизитами
+    const result = usersWithoutCurrent.map((user) => {
+      const userBankDetails =
+        bankDetails.find((bank) => bank.userId === user.userId) || {};
+      return {
+        ...user.get(), // Получаем обычный объект пользователя
+        bankDetails: {
+          cardNumber: userBankDetails.cardNumber || "Не указано",
+          accountNumber: userBankDetails.accountNumber || "Не указано",
+          corrAccount: userBankDetails.corrAccount || "Не указано",
+          bic: userBankDetails.bic || "Не указано",
+        },
+      };
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Ошибка при получении пользователей:", error);
+    res
+      .status(500)
+      .json({ message: "Ошибка при получении пользователей", error });
+  }
+};
+
+// Подтверждение профиля
+exports.confirmProfile = async (req, res) => {
+  try {
+    const { userId } = req.body; // ID пользователя, чей профиль нужно подтвердить
+    const currentUserId = req.user.id; // ID текущего пользователя (админа)
+
+    // Поиск текущего пользователя (администратора)
+    const adminUser = await UserProfile.findOne({
+      where: { id: currentUserId },
+    });
+
+    // Проверка, что текущий пользователь является администратором
+    if (!adminUser || !adminUser.admin) {
+      return res.status(400).json({
+        message: "У вас нет прав на изменение статуса пользователя",
+      });
+    }
+
+    // Подтверждение профиля пользователя
+    const confirmedUser = await UserProfile.update(
+      { isConfirmed: true },
+      { where: { userId }, returning: true }
+    );
+
+    // Отправка уведомления на почту
+    const userEmail = confirmedUser[1][0].email; // Получаем email пользователя после обновления
+    console.log(userEmail);
+    await sendEmail(
+      userEmail,
+      "Подтверждение профиля на IntellectPravo",
+      "Ваш профиль на IntellectPravo был успешно подтвержден. Теперь вы можете размещать и покупать произведения онлайн."
+    );
+
+    res.status(200).json({ message: "Профиль подтвержден." });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка подтверждения профиля", error });
+  }
+};
+
+// Отказ в подтверждении профиля
+exports.disConfirmProfile = async (req, res) => {
+  try {
+    const { userId } = req.body; // ID пользователя, чей профиль нужно отклонить
+    const currentUserId = req.user.id; // ID текущего пользователя (админа)
+
+    // Поиск текущего пользователя (администратора)
+    const adminUser = await UserProfile.findOne({
+      where: { id: currentUserId },
+    });
+
+    // Проверка, что текущий пользователь является администратором
+    if (!adminUser || !adminUser.admin) {
+      return res.status(400).json({
+        message: "У вас нет прав на изменение статуса пользователя",
+      });
+    }
+
+    // Отклонение профиля пользователя (сброс подтверждения)
+    const disConfirmedUser = await UserProfile.update(
+      { isConfirmed: false },
+      { where: { userId }, returning: true }
+    );
+
+    // Отправка уведомления на почту
+    const userEmail = disConfirmedUser[1][0].email; // Получаем email пользователя после обновления
+    await sendEmail(
+      userEmail,
+      "Отклонение профиля на IntellectPravo",
+      "Ваш профиль на IntellectPravo был отклонен администратором. Пожалуйста, исправьте введенные данные и отправьте их повторно для подтверждения."
+    );
+
+    res.status(200).json({ message: "Профиль отклонен." });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка отклонения профиля", error });
+  }
+};
+
+exports.addAdmin = async (req, res) => {
+  try {
+    const { userId } = req.body; // ID пользователя, чей профиль нужно отклонить
+    const currentUserId = req.user.id; // ID текущего пользователя (админа)
+
+    // Поиск текущего пользователя (администратора)
+    const adminUser = await UserProfile.findOne({
+      where: { id: currentUserId },
+    });
+
+    // Проверка, что текущий пользователь является администратором
+    if (!adminUser || !adminUser.admin) {
+      return res.status(400).json({
+        message: "У вас нет прав на изменение статуса пользователя",
+      });
+    }
+
+    // Отклонение профиля пользователя (сброс подтверждения)
+    await UserProfile.update(
+      { admin: true },
+      { where: { userId }, returning: true }
+    );
+
+    res.json({ message: "Админ добавлен." });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка добавления админа", error });
+  }
+};
+exports.removeAdmin = async (req, res) => {
+  try {
+    const { userId } = req.body; // ID пользователя, чей профиль нужно отклонить
+    const currentUserId = req.user.id; // ID текущего пользователя (админа)
+
+    // Поиск текущего пользователя (администратора)
+    const adminUser = await UserProfile.findOne({
+      where: { id: currentUserId },
+    });
+
+    // Проверка, что текущий пользователь является администратором
+    if (!adminUser || !adminUser.admin) {
+      return res.status(400).json({
+        message: "У вас нет прав на изменение статуса пользователя",
+      });
+    }
+
+    // Отклонение профиля пользователя (сброс подтверждения)
+    await UserProfile.update(
+      { admin: false },
+      { where: { userId }, returning: true }
+    );
+
+    res.json({ message: "Админ удален из админов." });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка изменения статуса админа", error });
+  }
 };
