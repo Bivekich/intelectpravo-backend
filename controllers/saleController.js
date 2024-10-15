@@ -54,6 +54,9 @@ exports.getSales = async (req, res) => {
         title: {
           [Op.like]: `%${search}%`, // Подстрочный поиск по названию
         },
+        userBought: {
+          [Op.is]: null, // Проверка, что поле userBought равно null
+        },
       },
       limit: parseInt(limit), // Лимит результатов
       offset: parseInt(offset), // Пропуск первых 'offset' результатов
@@ -65,6 +68,9 @@ exports.getSales = async (req, res) => {
       where: {
         title: {
           [Op.like]: `%${search}%`, // Тот же фильтр по названию
+        },
+        userBought: {
+          [Op.is]: null, // Проверка, что поле userBought равно null
         },
       },
     });
@@ -153,9 +159,9 @@ exports.buyUserSales = async (req, res) => {
 exports.markPaid = async (req, res) => {
   const userId = req.user.id;
   const { sid } = req.query; // Получаем sid из строки запроса
-
+  console.log(sid);
   const sale = await Sale.findOne({
-    where: { id: sid, userBought: { [Op.ne]: null } },
+    where: { id: sid, userBought: { [Op.is]: null } },
   });
   if (sale) {
     sale.update({ userBought: userId }, { where: { id: sid } });

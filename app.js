@@ -17,7 +17,7 @@ app.use("/profile", profileRoutes);
 app.use("/sale", saleRoutes);
 
 sequelize.sync().then(() => {
-  app.listen(3000, () => {
-    console.log("Сервер запущен на порту 3000");
+  app.listen(3030, () => {
+    console.log("Сервер запущен на порту 3030");
   });
 });
