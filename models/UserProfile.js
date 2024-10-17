@@ -73,6 +73,10 @@ const UserProfile = sequelize.define("UserProfile", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  toSend: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
 
 module.exports = UserProfile;

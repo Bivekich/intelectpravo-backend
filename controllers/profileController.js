@@ -53,6 +53,7 @@ exports.updateProfile = async (req, res) => {
       email,
       phoneNumber,
       isConfirmed: false,
+      toSend: false,
     });
     return res.status(201).json({
       message: "Профиль создан и данные сохранены.",
@@ -72,6 +73,8 @@ exports.updateProfile = async (req, res) => {
     passportIssuedDate,
     email,
     phoneNumber,
+    isConfirmed: false,
+    toSend: false,
   });
   if (profile.documentPhoto) {
     profile.documentPhoto = `${process.env.BASE_URL}/${profile.documentPhoto}`;
@@ -85,6 +88,11 @@ exports.uploadDocumentPhoto = async (req, res) => {
   const photoPath = req.file.path;
   await UserProfile.update({ documentPhoto: photoPath }, { where: { userId } });
   const fullPhotoPath = `${process.env.BASE_URL}/${photoPath}`;
+  const profile = await UserProfile.findOne({ where: { userId } });
+  await profile.update({
+    isConfirmed: false,
+    toSend: false,
+  });
   res.json({
     message: "Фото документа загружено.",
     documentPhoto: fullPhotoPath,
@@ -95,12 +103,28 @@ exports.uploadDocumentPhoto = async (req, res) => {
 exports.addBankDetails = async (req, res) => {
   const userId = req.user.id;
   const { cardNumber, accountNumber, corrAccount, bic } = req.body;
-  const bankDetails = await BankDetails.create({
-    userId,
-    cardNumber,
-    accountNumber,
-    corrAccount,
-    bic,
+  let bankDetails = await BankDetails.findOne({ where: { userId } });
+  if (!bankDetails) {
+    bankDetails = await BankDetails.create({
+      userId,
+      cardNumber,
+      accountNumber,
+      corrAccount,
+      bic,
+    });
+  } else {
+    await BankDetails.update({
+      userId,
+      cardNumber,
+      accountNumber,
+      corrAccount,
+      bic,
+    });
+  }
+  const profile = await UserProfile.findOne({ where: { userId } });
+  await profile.update({
+    isConfirmed: false,
+    toSend: false,
   });
   res.json({ message: "Банковские реквизиты добавлены.", bankDetails });
 };
@@ -205,6 +229,7 @@ exports.getNotConfirmedFilledUsers = async (req, res) => {
             [Op.and]: [
               ...queryConditions,
               { isConfirmed: false }, // Проверка на подтверждение
+              { toSend: true }, // Проверка на подтверждение
             ],
           },
           { admin: true }, // Проверка на администратора
@@ -380,5 +405,23 @@ exports.removeAdmin = async (req, res) => {
     res.json({ message: "Админ удален из админов." });
   } catch (error) {
     res.status(500).json({ message: "Ошибка изменения статуса админа", error });
+  }
+};
+
+exports.submitProfileToConfirm = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Отклонение профиля пользователя (сброс подтверждения)
+    await UserProfile.update(
+      { toSend: true },
+      { where: { userId }, returning: true }
+    );
+
+    res.json({ message: "Профиль отправлен администратору на проверку" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Ошибка отправления аккаунта на проверку", error });
   }
 };

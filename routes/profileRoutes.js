@@ -13,6 +13,7 @@ const {
   disConfirmProfile,
   addAdmin,
   removeAdmin,
+  submitProfileToConfirm,
 } = require("../controllers/profileController");
 const authenticateToken = require("../middleware/auth");
 const upload = require("../middleware/upload");
@@ -40,5 +41,6 @@ router.get(
   authenticateToken,
   getNotConfirmedFilledUsers
 );
+router.post("/submit", authenticateToken, submitProfileToConfirm);
 
 module.exports = router;
