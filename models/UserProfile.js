@@ -57,7 +57,7 @@ const UserProfile = sequelize.define("UserProfile", {
   email: {
     type: DataTypes.STRING,
     allowNull: true,
-    unique: true,
+    unique: false,
   },
   phoneNumber: {
     type: DataTypes.STRING,

@@ -94,6 +94,7 @@ exports.register = async (req, res) => {
     passportIssuedBy: null,
     passportIssuedDate: null,
     isConfirmed: false,
+    toSend: false,
     password: user.password,
   });
 
