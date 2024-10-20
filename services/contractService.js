@@ -68,8 +68,8 @@ exports.generateContract = async (
       console.error(`Ошибка при получении информации о файле: ${err}`);
       return;
     }
-
-    fileSizeInBytes = stats.size;
+    console.log(stats);
+    fileSize = formatBytes(stats.size);
   });
   function formatCurrency(value) {
     const rubles = Math.floor(value / 100); // Получаем рубли
@@ -485,27 +485,61 @@ exports.generateContract = async (
           <tr>
             <th class="orange number">2.2.</th>
             <th class="orange">НАИМЕНОВАНИЕ ФАЙЛА, ФОРМАТ, РАЗМЕР</th>
-            <td class="blue">${sale.fileUrl.split("/").at(-1)} ${formatBytes(
-    fileSizeInBytes
-  )}</td>
+            <td class="blue">${sale.fileUrl.split("/").at(-1)} ${fileSize}</td>
           </tr>
-          <tr>
-            <th class="orange number">2.3.</th>
-            <th class="orange">
-              СТОИМОСТЬ ПЕРЕДАЧИ ИСКЛЮЧИТЕЛЬНОГ ПРАВА НА ПРОИЗВЕДЕНИЕ:
-            </th>
-            <td class="blue">${formatCurrency(sale.price * 100)}</td>
-          </tr>
-          <tr>
-            <th class="orange number">2.4.</th>
-            <th class="orange">СОДЕРДЖАНИЕ И КРАТКОЕ ОПИСАНИЕ ПРОИЗВЕДЕНИЯ:</th>
-            <td class="blue">${sale.description}</td>
-          </tr>
-          <tr>
-            <th class="orange number">2.4.</th>
-            <th class="orange">ОСНОВАНИЕ ПРИОБРЕТЕНИЯ ПРАВООБЛАДАТЕЛЕМ:</th>
-            <td class="blue">ПРАВООБЛАДАТЕЛЬ ЯВЛЯЕТСЯ АВТОРОМ</td>
-          </tr>
+          ${
+            sale.saleType === "license"
+              ? `
+            <tr>
+              <th class="orange number">2.3.</th>
+              <th class="orange">
+                ЭКСКЛЮЗИВНОСТЬ ЛИЦЕНЗИИ:
+              </th>
+              <td class="blue">${sale.isExclusive ? "Да" : "Нет"}</td>
+            </tr>
+            <tr>
+              <th class="orange number">2.4.</th>
+              <th class="orange">СРОК ЛИЦЕНЗИИ:</th>
+              <td class="blue">${sale.licenseTerm} лет</td>
+            </tr>
+            <tr>
+              <th class="orange number">2.5.</th>
+              <th class="orange">
+                СТОИМОСТЬ ПЕРЕДАЧИ ИСКЛЮЧИТЕЛЬНОГО ПРАВА НА ПРОИЗВЕДЕНИЕ:
+              </th>
+              <td class="blue">${formatCurrency(sale.price * 100)}</td>
+            </tr>
+            <tr>
+              <th class="orange number">2.6.</th>
+              <th class="orange">СОДЕРДЖАНИЕ И КРАТКОЕ ОПИСАНИЕ ПРОИЗВЕДЕНИЯ:</th>
+              <td class="blue">${sale.description}</td>
+            </tr>
+            <tr>
+              <th class="orange number">2.7.</th>
+              <th class="orange">ОСНОВАНИЕ ПРИОБРЕТЕНИЯ ПРАВООБЛАДАТЕЛЕМ:</th>
+              <td class="blue">ПРАВООБЛАДАТЕЛЬ ЯВЛЯЕТСЯ АВТОРОМ</td>
+            </tr>
+            `
+              : `
+            <tr>
+              <th class="orange number">2.3.</th>
+              <th class="orange">
+                СТОИМОСТЬ ПЕРЕДАЧИ ИСКЛЮЧИТЕЛЬНОГО ПРАВА НА ПРОИЗВЕДЕНИЕ:
+              </th>
+              <td class="blue">${formatCurrency(sale.price * 100)}</td>
+            </tr>
+            <tr>
+              <th class="orange number">2.4.</th>
+              <th class="orange">СОДЕРДЖАНИЕ И КРАТКОЕ ОПИСАНИЕ ПРОИЗВЕДЕНИЯ:</th>
+              <td class="blue">${sale.description}</td>
+            </tr>
+            <tr>
+              <th class="orange number">2.5.</th>
+              <th class="orange">ОСНОВАНИЕ ПРИОБРЕТЕНИЯ ПРАВООБЛАДАТЕЛЕМ:</th>
+              <td class="blue">ПРАВООБЛАДАТЕЛЬ ЯВЛЯЕТСЯ АВТОРОМ</td>
+            </tr>
+            `
+          }
         </tbody>
       </table>
       <p class="page_counter">Страница 2 из 3</p>
