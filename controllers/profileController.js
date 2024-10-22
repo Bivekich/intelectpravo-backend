@@ -187,8 +187,8 @@ exports.checkVerifyAction = async (req, res) => {
   const { phoneNumber, code } = req.body;
   const userId = req.user.id;
   const savedCode = await Code.findOne({ where: { phoneNumber, code } });
+  await Code.destroy({ where: { phoneNumber, code } });
   if (!savedCode || new Date() > savedCode.expiresAt) {
-    await Code.destroy({ where: { phoneNumber, code } });
     return res
       .status(400)
       .json({ message: "Неправильный или просроченный код." });
