@@ -79,6 +79,12 @@ exports.updateProfile = async (req, res) => {
   if (profile.documentPhoto) {
     profile.documentPhoto = `${process.env.BASE_URL}/${profile.documentPhoto}`;
   }
+  await sendEmail(
+    profile.email,
+    "Уведомление с intelectpravo.ru",
+    "Вы успешно обновили профиль на сайте intelectpravo.ru",
+  );
+
   res.json({ message: "Профиль обновлен.", profile });
 };
 
@@ -93,6 +99,12 @@ exports.uploadDocumentPhoto = async (req, res) => {
     isConfirmed: false,
     toSend: false,
   });
+  await sendEmail(
+    profile.email,
+    "Уведомление с intelectpravo.ru",
+    "Вы успешно загрузили фото документа на сайте intelectpravo.ru",
+  );
+
   res.json({
     message: "Фото документа загружено.",
     documentPhoto: fullPhotoPath,
@@ -103,29 +115,49 @@ exports.uploadDocumentPhoto = async (req, res) => {
 exports.addBankDetails = async (req, res) => {
   const userId = req.user.id;
   const { cardNumber, accountNumber, corrAccount, bic } = req.body;
+
+  // Initialize an object to hold the bank details
+  const bankDetailsToUpdate = {};
+
+  // Check for each field and only add it if it's provided
+  if (cardNumber) bankDetailsToUpdate.cardNumber = cardNumber;
+  if (accountNumber) bankDetailsToUpdate.accountNumber = accountNumber;
+  if (corrAccount) bankDetailsToUpdate.corrAccount = corrAccount;
+  if (bic) bankDetailsToUpdate.bic = bic;
+
+  // Find existing bank details for the user
   let bankDetails = await BankDetails.findOne({ where: { userId } });
+
   if (!bankDetails) {
-    bankDetails = await BankDetails.create({
-      userId,
-      cardNumber,
-      accountNumber,
-      corrAccount,
-      bic,
-    });
+    // If no bank details exist, create new ones
+    if (Object.keys(bankDetailsToUpdate).length > 0) {
+      bankDetails = await BankDetails.create({
+        userId,
+        ...bankDetailsToUpdate,
+      });
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Не указаны банковские реквизиты." });
+    }
   } else {
-    await BankDetails.update({
-      userId,
-      cardNumber,
-      accountNumber,
-      corrAccount,
-      bic,
-    });
+    // If bank details exist, update only the provided fields
+    if (Object.keys(bankDetailsToUpdate).length > 0) {
+      await BankDetails.update(bankDetailsToUpdate, { where: { userId } });
+    }
   }
+
   const profile = await UserProfile.findOne({ where: { userId } });
   await profile.update({
     isConfirmed: false,
     toSend: false,
   });
+  await sendEmail(
+    profile.email,
+    "Уведомление с intelectpravo.ru",
+    "Вы успешно изменили бакновские реквизиты на сайте intelectpravo.ru",
+  );
+
   res.json({ message: "Банковские реквизиты добавлены.", bankDetails });
 };
 
@@ -166,6 +198,42 @@ exports.changePassword = async (req, res) => {
     await user.save();
     await userProfile.save();
 
+    await sendEmail(
+      user.email,
+      "Уведомление с intelectpravo.ru",
+      "Вы успешно изменили пароль на сайте intelectpravo.ru",
+    );
+    res.status(200).json({ message: "Пароль успешно изменен." });
+  } catch (error) {
+    console.error("Error changing password:", error);
+    res.status(500).json({ message: "Произошла ошибка при изменении пароля." });
+  }
+};
+exports.restorePassword = async (req, res) => {
+  const { newPassword } = req.body;
+
+  // Get the user ID from the authenticated user (from the request)
+  const userId = req.user.id;
+
+  try {
+    // Find the user by ID
+    const user = await User.findByPk(userId);
+    const userProfile = await UserProfile.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Пользователь не найден." });
+    }
+
+    // Update the user's password
+    user.password = newPassword;
+    userProfile.password = newPassword;
+    await user.save();
+    await userProfile.save();
+
+    await sendEmail(
+      user.email,
+      "Уведомление с intelectpravo.ru",
+      "Вы успешно изменили пароль на сайте intelectpravo.ru",
+    );
     res.status(200).json({ message: "Пароль успешно изменен." });
   } catch (error) {
     console.error("Error changing password:", error);
@@ -240,7 +308,7 @@ exports.getNotConfirmedFilledUsers = async (req, res) => {
 
     // Исключение текущего пользователя из списка
     const usersWithoutCurrent = users.filter(
-      (user) => user.userId !== currentUserId
+      (user) => user.userId !== currentUserId,
     );
 
     // Получение банковских реквизитов для найденных пользователей
@@ -266,7 +334,16 @@ exports.getNotConfirmedFilledUsers = async (req, res) => {
       };
     });
 
-    res.status(200).json(result);
+    const resultToSend = result
+      .map((item) => {
+        if (item.documentPhoto) {
+          return `${process.env.BASE_URL}/${item.documentPhoto}`;
+        }
+        return null; // Return null or any placeholder value for falsy cases
+      })
+      .filter((url) => url !== null);
+
+    res.status(200).json(resultToSend);
   } catch (error) {
     console.error("Ошибка при получении пользователей:", error);
     res
@@ -296,7 +373,7 @@ exports.confirmProfile = async (req, res) => {
     // Подтверждение профиля пользователя
     const confirmedUser = await UserProfile.update(
       { isConfirmed: true },
-      { where: { userId }, returning: true }
+      { where: { userId }, returning: true },
     );
 
     // Отправка уведомления на почту
@@ -305,7 +382,7 @@ exports.confirmProfile = async (req, res) => {
     await sendEmail(
       userEmail,
       "Подтверждение профиля на IntellectPravo",
-      "Ваш профиль на IntellectPravo был успешно подтвержден. Теперь вы можете размещать и покупать произведения онлайн."
+      "Ваш профиль на IntellectPravo был успешно подтвержден. Теперь вы можете размещать и покупать произведения онлайн.",
     );
 
     res.status(200).json({ message: "Профиль подтвержден." });
@@ -335,7 +412,7 @@ exports.disConfirmProfile = async (req, res) => {
     // Отклонение профиля пользователя (сброс подтверждения)
     const disConfirmedUser = await UserProfile.update(
       { isConfirmed: false },
-      { where: { userId }, returning: true }
+      { where: { userId }, returning: true },
     );
 
     // Отправка уведомления на почту
@@ -343,7 +420,7 @@ exports.disConfirmProfile = async (req, res) => {
     await sendEmail(
       userEmail,
       "Отклонение профиля на IntellectPravo",
-      "Ваш профиль на IntellectPravo был отклонен администратором. Пожалуйста, исправьте введенные данные и отправьте их повторно для подтверждения."
+      "Ваш профиль на IntellectPravo был отклонен администратором. Пожалуйста, исправьте введенные данные и отправьте их повторно для подтверждения.",
     );
 
     res.status(200).json({ message: "Профиль отклонен." });
@@ -372,7 +449,7 @@ exports.addAdmin = async (req, res) => {
     // Отклонение профиля пользователя (сброс подтверждения)
     await UserProfile.update(
       { admin: true },
-      { where: { userId }, returning: true }
+      { where: { userId }, returning: true },
     );
 
     res.json({ message: "Админ добавлен." });
@@ -400,7 +477,7 @@ exports.removeAdmin = async (req, res) => {
     // Отклонение профиля пользователя (сброс подтверждения)
     await UserProfile.update(
       { admin: false },
-      { where: { userId }, returning: true }
+      { where: { userId }, returning: true },
     );
 
     res.json({ message: "Админ удален из админов." });
@@ -416,7 +493,7 @@ exports.submitProfileToConfirm = async (req, res) => {
     // Отклонение профиля пользователя (сброс подтверждения)
     await UserProfile.update(
       { toSend: true },
-      { where: { userId }, returning: true }
+      { where: { userId }, returning: true },
     );
 
     res.json({ message: "Профиль отправлен администратору на проверку" });

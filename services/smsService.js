@@ -1,4 +1,5 @@
 const { Code } = require("../models");
+const { Op } = require("sequelize");
 const axios = require("axios");
 require("dotenv").config();
 
@@ -28,7 +29,7 @@ const sendSMSWithCode = async (number, code) => {
   try {
     // Encode the text for the GET request
     const text = encodeURIComponent(
-      `Intelectpravo ваш код подтверждения: ${code}`
+      `Intelectpravo ваш код подтверждения: ${code}`,
     );
 
     const response = await axios.get(
@@ -43,7 +44,7 @@ const sendSMSWithCode = async (number, code) => {
           username: process.env.SMS_AERO_EMAIL,
           password: process.env.SMS_AERO_API_KEY,
         },
-      }
+      },
     );
 
     console.log("SMS отправлено:", response.data);
@@ -51,25 +52,46 @@ const sendSMSWithCode = async (number, code) => {
   } catch (error) {
     console.error(
       "Ошибка при отправке SMS:",
-      error.response ? error.response.data : error.message
+      error.response ? error.response.data : error.message,
     );
     throw error;
   }
 };
 
 exports.sendCode = async (phoneNumber) => {
-  // Generate a verification code
-  const code = Math.floor(1000 + Math.random() * 9000).toString();
   const expirationTime = new Date();
   expirationTime.setMinutes(expirationTime.getMinutes() + 10);
 
-  // Save the code in the database with an expiration time
+  // Check if an unexpired code already exists for this phone number
+  const existingCode = await Code.findOne({
+    where: {
+      phoneNumber: phoneNumber,
+      expiresAt: {
+        [Op.gt]: new Date(), // Only check for codes that expire in the future
+      },
+    },
+  });
+
+  if (existingCode) {
+    // If an unexpired code exists, do not generate a new one
+    return {
+      message:
+        "A code has already been sent to this phone number. Please try again later.",
+    };
+  }
+
+  // Generate a new code since no valid code exists
+  const code = Math.floor(1000 + Math.random() * 9000).toString();
+
+  // Save the new code in the database with a 10-minute expiration time
   await Code.create({
     phoneNumber: phoneNumber,
     code,
     expiresAt: expirationTime,
   });
 
-  // Send the code via email (You might want to adjust this to send via SMS instead)
+  // Send the code via SMS
   await sendSMSWithCode(normalizePhoneNumber(phoneNumber), code);
+
+  return { message: "Verification code sent successfully." };
 };

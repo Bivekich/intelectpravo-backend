@@ -28,7 +28,7 @@ const Sale = sequelize.define(
     },
     price: {
       type: DataTypes.FLOAT,
-      allowNull: false,
+      allowNull: true,
       validate: {
         isFloat: true, // Ensure that the price is a valid float number
         min: 0, // Ensures the price is non-negative
@@ -75,7 +75,7 @@ const Sale = sequelize.define(
   },
   {
     timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
-  }
+  },
 );
 
 module.exports = Sale;

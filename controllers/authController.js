@@ -1,5 +1,6 @@
 // controllers/authController.js
 const { User, UserProfile, Code } = require("../models");
+const { sendEmail } = require("../services/emailService");
 const { sendCode } = require("../services/smsService");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -100,6 +101,11 @@ exports.register = async (req, res) => {
 
   await sendCode(user.phone);
 
+  await sendEmail(
+    user.email,
+    "Уведомление с intelectpravo.ru",
+    "Вы зарегистрировались на сайте intelectpravo.ru",
+  );
   res.status(200).json({ message: "Пользователь успешно зарегистрирован" });
 };
 
@@ -124,7 +130,13 @@ exports.verifyCode = async (req, res) => {
       fullName: `${user.surname} ${user.name}`,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "24h" }
+    { expiresIn: "24h" },
+  );
+
+  await sendEmail(
+    user.email,
+    "Уведомление с intelectpravo.ru",
+    "Вы успешно вошли на intelectpravo.ru",
   );
 
   res.status(200).json({

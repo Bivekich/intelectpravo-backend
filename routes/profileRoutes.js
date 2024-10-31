@@ -14,6 +14,7 @@ const {
   addAdmin,
   removeAdmin,
   submitProfileToConfirm,
+  restorePassword,
 } = require("../controllers/profileController");
 const authenticateToken = require("../middleware/auth");
 const upload = require("../middleware/upload");
@@ -25,12 +26,13 @@ router.post(
   "/upload-photo",
   authenticateToken,
   upload.single("documentPhoto"),
-  uploadDocumentPhoto
+  uploadDocumentPhoto,
 );
 router.post("/confirm", authenticateToken, confirmProfile);
 router.post("/disconfirm", authenticateToken, disConfirmProfile);
 router.post("/bank-details", authenticateToken, addBankDetails);
 router.get("/bank-details", authenticateToken, getBankDetails);
+router.post("/restore-password", authenticateToken, restorePassword);
 router.post("/change-password", authenticateToken, changePassword);
 router.post("/verify-action", authenticateToken, verifyAction);
 router.post("/check-verify", authenticateToken, checkVerifyAction);
@@ -39,7 +41,7 @@ router.post("/removeAdmin", authenticateToken, removeAdmin);
 router.get(
   "/getNotConfirmedFilledUsers",
   authenticateToken,
-  getNotConfirmedFilledUsers
+  getNotConfirmedFilledUsers,
 );
 router.post("/submit", authenticateToken, submitProfileToConfirm);
 

@@ -59,6 +59,11 @@ const UserProfile = sequelize.define("UserProfile", {
     allowNull: true,
     unique: false,
   },
+  inoy: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: false,
+  },
   phoneNumber: {
     type: DataTypes.STRING,
     allowNull: false,
