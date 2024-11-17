@@ -4,10 +4,14 @@ const {
   loginByPass,
   register,
   verifyCode,
+  logout,
+  checkSession,
 } = require("../controllers/authController");
 const router = express.Router();
 
 router.post("/login", login);
+router.post("/logout", logout);
+router.post("/checkSession", checkSession);
 router.post("/loginByPass", loginByPass);
 router.post("/register", register);
 router.post("/verify", verifyCode);

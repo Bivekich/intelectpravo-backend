@@ -61,7 +61,11 @@ const sendSMSWithCode = async (number, code) => {
 exports.sendCode = async (phoneNumber) => {
   const expirationTime = new Date();
   expirationTime.setMinutes(expirationTime.getMinutes() + 10);
-
+  await Code.destroy({
+    where: {
+      phoneNumber: phoneNumber,
+    },
+  });
   // Check if an unexpired code already exists for this phone number
   const existingCode = await Code.findOne({
     where: {
@@ -84,6 +88,7 @@ exports.sendCode = async (phoneNumber) => {
   const code = Math.floor(1000 + Math.random() * 9000).toString();
 
   // Save the new code in the database with a 10-minute expiration time
+
   await Code.create({
     phoneNumber: phoneNumber,
     code,

@@ -1,7 +1,8 @@
 // controllers/authController.js
-const { User, UserProfile, Code } = require("../models");
+const { User, UserProfile, Code, Session } = require("../models");
 const { sendEmail } = require("../services/emailService");
 const { sendCode } = require("../services/smsService");
+
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -16,10 +17,15 @@ exports.login = async (req, res) => {
   }
 
   // Попробуйте найти пользователя по номеру телефона
-  let user = await UserProfile.findOne({ where: { phoneNumber: login } });
 
-  if (!user) {
-    user = await UserProfile.findOne({ where: { email: login } });
+  let user = await User.findOne({
+    where: { phone: login, isVerified: true },
+  });
+
+  if (user) {
+    user = await UserProfile.findOne({
+      where: { phoneNumber: login },
+    });
   }
 
   if (!user) {
@@ -33,7 +39,19 @@ exports.login = async (req, res) => {
     .status(200)
     .json({ message: "Профиль найден. Введите пароль", phone: `${phone}` });
 };
+exports.logout = async (req, res) => {
+  const { token } = req.body;
 
+  // const token = req.headers.authorization?.split(" ")[1];
+
+  try {
+    await Session.destroy({ where: { token } });
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 exports.loginByPass = async (req, res) => {
   const { phoneNumber, password } = req.body;
 
@@ -67,6 +85,15 @@ exports.register = async (req, res) => {
   const { phone, name, email, surname, patronymic, password } = req.body;
   let user = await UserProfile.findOne({ where: { phoneNumber: phone } });
   if (user) {
+    let user1 = await User.findOne({
+      where: { phone: phone },
+    });
+
+    if (!user1.isVerified) {
+      await sendCode(phone);
+
+      return res.status(200).json({ message: "Продолжайте регистрацию" });
+    }
     return res
       .status(400)
       .json({ message: "Пользователь уже существует. Авторизуйтесь." });
@@ -109,8 +136,22 @@ exports.register = async (req, res) => {
   res.status(200).json({ message: "Пользователь успешно зарегистрирован" });
 };
 
+exports.checkSession = async (req, res) => {
+  const { token, ipAddress } = req.body;
+  const session = await Session.findOne({ where: { token, ipAddress } });
+  if (session) {
+    res.status(200).json({
+      message: "Сессия существует",
+    });
+  } else {
+    res.status(404).json({
+      message: "Сессия не существует",
+    });
+  }
+  return session;
+};
 exports.verifyCode = async (req, res) => {
-  const { phoneNumber, code } = req.body;
+  const { phoneNumber, code, ipAddress } = req.body;
   const savedCode = await Code.findOne({ where: { phoneNumber, code } });
 
   if (!savedCode || new Date() > savedCode.expiresAt) {
@@ -132,6 +173,19 @@ exports.verifyCode = async (req, res) => {
     process.env.JWT_SECRET,
     { expiresIn: "24h" },
   );
+  const sessions = await Session.findAll({ where: { userId: user.id } });
+  if (sessions.length > 0) {
+    // Iterate over the sessions and destroy each one
+    await Promise.all(sessions.map((session) => session.destroy()));
+    console.log("All sessions destroyed successfully.");
+  } else {
+    console.log("No sessions found for this user.");
+  }
+  await Session.create({
+    userId: user.id,
+    token,
+    ipAddress,
+  });
 
   await sendEmail(
     user.email,
