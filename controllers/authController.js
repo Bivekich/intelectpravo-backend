@@ -6,6 +6,13 @@ const { sendCode } = require("../services/smsService");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
+const createVerificationCode = (code) => {
+  const secret = 1234; // Секретное число
+  const randomFactor = secret * secret; // Случайное число от 0 до 99
+  const encoded = (parseInt(code) * 2 + secret + randomFactor).toString(); // Применяем операции
+  return encoded.slice(-4); // Возвращаем последние 4 символа
+};
+
 exports.login = async (req, res) => {
   const { login } = req.body;
 
@@ -74,7 +81,9 @@ exports.loginByPass = async (req, res) => {
     }
 
     await sendCode(phoneNumber);
-    res.status(200).json({ message: "Код отправлен на вашу почту" });
+    res
+      .status(200)
+      .json({ message: "Код отправлен на вашу почту", email: user.email });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Произошла ошибка на сервере." });
@@ -128,12 +137,20 @@ exports.register = async (req, res) => {
 
   await sendCode(user.phone);
 
-  await sendEmail(
+  sendEmail(
     user.email,
     "Уведомление с intelectpravo.ru",
     "Вы зарегистрировались на сайте intelectpravo.ru",
   );
   res.status(200).json({ message: "Пользователь успешно зарегистрирован" });
+};
+
+exports.resendCode = async (req, res) => {
+  const { phoneNumber } = req.body;
+
+  await sendCode(phoneNumber, true);
+
+  res.status(200).json({ message: "Код подтверждения успешно выслан" });
 };
 
 exports.checkSession = async (req, res) => {
@@ -150,11 +167,23 @@ exports.checkSession = async (req, res) => {
   }
   return session;
 };
+
 exports.verifyCode = async (req, res) => {
-  const { phoneNumber, code, ipAddress } = req.body;
+  const { phoneNumber, code, encodedCode, ipAddress } = req.body;
+
   const savedCode = await Code.findOne({ where: { phoneNumber, code } });
 
-  if (!savedCode || new Date() > savedCode.expiresAt) {
+  console.log("\n\n");
+  console.log(
+    `Intelectpravo ваш код подтверждения: ${createVerificationCode(code)}`,
+  );
+  console.log("\n\n");
+
+  if (
+    !savedCode ||
+    createVerificationCode(code) !== encodedCode ||
+    new Date() > savedCode.expiresAt
+  ) {
     return res
       .status(400)
       .json({ message: "Неправильный или просроченный код." });
@@ -187,7 +216,7 @@ exports.verifyCode = async (req, res) => {
     ipAddress,
   });
 
-  await sendEmail(
+  sendEmail(
     user.email,
     "Уведомление с intelectpravo.ru",
     "Вы успешно вошли на intelectpravo.ru",

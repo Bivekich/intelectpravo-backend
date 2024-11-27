@@ -1,7 +1,19 @@
-const { Code } = require("../models");
+const { Code, UserProfile } = require("../models");
 const { Op } = require("sequelize");
 const axios = require("axios");
+const { sendEmail } = require("./emailService");
 require("dotenv").config();
+
+const generateCode = () => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
+
+const createVerificationCode = (code) => {
+  const secret = 1234; // Секретное число
+  const randomFactor = secret * secret; // Случайное число от 0 до 99
+  const encoded = (parseInt(code) * 2 + secret + randomFactor).toString(); // Применяем операции
+  return encoded.slice(-4); // Возвращаем последние 4 символа
+};
 
 const normalizePhoneNumber = (phoneNumber) => {
   // Remove all non-digit characters
@@ -57,46 +69,59 @@ const sendSMSWithCode = async (number, code) => {
     throw error;
   }
 };
-
-exports.sendCode = async (phoneNumber) => {
+exports.sendCode = async (phoneNumber, resend = false) => {
   const expirationTime = new Date();
   expirationTime.setMinutes(expirationTime.getMinutes() + 10);
-  await Code.destroy({
-    where: {
-      phoneNumber: phoneNumber,
-    },
-  });
-  // Check if an unexpired code already exists for this phone number
+
+  if (resend) {
+    await Code.destroy({
+      where: {
+        phoneNumber: phoneNumber,
+      },
+    });
+  }
+
   const existingCode = await Code.findOne({
     where: {
       phoneNumber: phoneNumber,
       expiresAt: {
-        [Op.gt]: new Date(), // Only check for codes that expire in the future
+        [Op.gt]: new Date(),
       },
     },
   });
 
   if (existingCode) {
-    // If an unexpired code exists, do not generate a new one
-    return {
-      message:
-        "A code has already been sent to this phone number. Please try again later.",
-    };
+    if (!resend) {
+      return {
+        message:
+          "A code has already been sent to this phone number. Please try again later.",
+      };
+    }
   }
 
-  // Generate a new code since no valid code exists
-  const code = Math.floor(1000 + Math.random() * 9000).toString();
-
-  // Save the new code in the database with a 10-minute expiration time
+  const code = generateCode();
+  const encodedCode = createVerificationCode(code);
 
   await Code.create({
     phoneNumber: phoneNumber,
-    code,
+    code: code, // Сохраняем закодированный код
     expiresAt: expirationTime,
   });
 
-  // Send the code via SMS
+  const user = await UserProfile.findOne({ where: { phoneNumber } });
+
+  const email = user.email;
+
   await sendSMSWithCode(normalizePhoneNumber(phoneNumber), code);
+  sendEmail(
+    email,
+    `Intelectpravo ваш код подтверждения`,
+    `Intelectpravo ваш код подтверждения: ${encodedCode}`,
+  ); // Отправляем код на email
+
+  console.log("\n\n");
+  console.log(`Intelectpravo ваш код подтверждения: ${encodedCode}`);
+  console.log("\n\n");
 
   return { message: "Verification code sent successfully." };
 };

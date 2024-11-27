@@ -3,6 +3,13 @@ const { sendEmail } = require("../services/emailService");
 const { sendCode } = require("../services/smsService");
 const { Op } = require("sequelize");
 
+const createVerificationCode = (code) => {
+  const secret = 1234; // Секретное число
+  const randomFactor = secret * secret; // Случайное число от 0 до 99
+  const encoded = (parseInt(code) * 2 + secret + randomFactor).toString(); // Применяем операции
+  return encoded.slice(-4); // Возвращаем последние 4 символа
+};
+
 // Получение базового профиля
 exports.getBasicProfile = async (req, res) => {
   const userId = req.user.id;
@@ -79,7 +86,7 @@ exports.updateProfile = async (req, res) => {
   if (profile.documentPhoto) {
     profile.documentPhoto = `${process.env.BASE_URL}/${profile.documentPhoto}`;
   }
-  await sendEmail(
+  sendEmail(
     profile.email,
     "Уведомление с intelectpravo.ru",
     "Вы успешно обновили профиль на сайте intelectpravo.ru",
@@ -99,7 +106,7 @@ exports.uploadDocumentPhoto = async (req, res) => {
     isConfirmed: false,
     toSend: false,
   });
-  await sendEmail(
+  sendEmail(
     profile.email,
     "Уведомление с intelectpravo.ru",
     "Вы успешно загрузили фото документа на сайте intelectpravo.ru",
@@ -152,7 +159,7 @@ exports.addBankDetails = async (req, res) => {
     isConfirmed: false,
     toSend: false,
   });
-  await sendEmail(
+  sendEmail(
     profile.email,
     "Уведомление с intelectpravo.ru",
     "Вы успешно изменили бакновские реквизиты на сайте intelectpravo.ru",
@@ -198,7 +205,7 @@ exports.changePassword = async (req, res) => {
     await user.save();
     await userProfile.save();
 
-    await sendEmail(
+    sendEmail(
       user.email,
       "Уведомление с intelectpravo.ru",
       "Вы успешно изменили пароль на сайте intelectpravo.ru",
@@ -229,7 +236,7 @@ exports.restorePassword = async (req, res) => {
     await user.save();
     await userProfile.save();
 
-    await sendEmail(
+    sendEmail(
       user.email,
       "Уведомление с intelectpravo.ru",
       "Вы успешно изменили пароль на сайте intelectpravo.ru",
@@ -252,11 +259,16 @@ exports.verifyAction = async (req, res) => {
 };
 
 exports.checkVerifyAction = async (req, res) => {
-  const { phoneNumber, code } = req.body;
+  const { phoneNumber, code, encodedCode } = req.body;
   const userId = req.user.id;
   const savedCode = await Code.findOne({ where: { phoneNumber, code } });
   await Code.destroy({ where: { phoneNumber, code } });
-  if (!savedCode || new Date() > savedCode.expiresAt) {
+
+  if (
+    !savedCode ||
+    createVerificationCode(code) !== encodedCode ||
+    new Date() > savedCode.expiresAt
+  ) {
     return res
       .status(400)
       .json({ message: "Неправильный или просроченный код." });
@@ -379,7 +391,7 @@ exports.confirmProfile = async (req, res) => {
     // Отправка уведомления на почту
     const userEmail = confirmedUser[1][0].email; // Получаем email пользователя после обновления
     console.log(userEmail);
-    await sendEmail(
+    sendEmail(
       userEmail,
       "Подтверждение профиля на IntellectPravo",
       "Ваш профиль на IntellectPravo был успешно подтвержден. Теперь вы можете размещать и покупать произведения онлайн.",
@@ -417,7 +429,7 @@ exports.disConfirmProfile = async (req, res) => {
 
     // Отправка уведомления на почту
     const userEmail = disConfirmedUser[1][0].email; // Получаем email пользователя после обновления
-    await sendEmail(
+    sendEmail(
       userEmail,
       "Отклонение профиля на IntellectPravo",
       "Ваш профиль на IntellectPravo был отклонен администратором. Пожалуйста, исправьте введенные данные и отправьте их повторно для подтверждения.",
