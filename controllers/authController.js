@@ -140,7 +140,7 @@ exports.register = async (req, res) => {
   sendEmail(
     user.email,
     "Уведомление с intelectpravo.ru",
-    "Вы зарегистрировались на сайте intelectpravo.ru",
+    "Вы зарегистрировались на сайте intelectpravo.ru"
   );
   res.status(200).json({ message: "Пользователь успешно зарегистрирован" });
 };
@@ -175,7 +175,7 @@ exports.verifyCode = async (req, res) => {
 
   console.log("\n\n");
   console.log(
-    `Intelectpravo ваш код подтверждения: ${createVerificationCode(code)}`,
+    `Intelectpravo ваш код подтверждения: ${createVerificationCode(code)}`
   );
   console.log("\n\n");
 
@@ -190,7 +190,7 @@ exports.verifyCode = async (req, res) => {
   }
 
   await User.update({ isVerified: true }, { where: { phone: phoneNumber } });
-  await Code.destroy({ where: { phoneNumber, code } });
+  await Code.destroy({ where: { phoneNumber } });
 
   const user = await UserProfile.findOne({ where: { phoneNumber } });
   const token = jwt.sign(
@@ -200,7 +200,7 @@ exports.verifyCode = async (req, res) => {
       fullName: `${user.surname} ${user.name}`,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "24h" },
+    { expiresIn: "24h" }
   );
   const sessions = await Session.findAll({ where: { userId: user.id } });
   if (sessions.length > 0) {
@@ -219,7 +219,7 @@ exports.verifyCode = async (req, res) => {
   sendEmail(
     user.email,
     "Уведомление с intelectpravo.ru",
-    "Вы успешно вошли на intelectpravo.ru",
+    "Вы успешно вошли на intelectpravo.ru"
   );
 
   res.status(200).json({

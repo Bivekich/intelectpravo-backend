@@ -89,7 +89,7 @@ exports.updateProfile = async (req, res) => {
   sendEmail(
     profile.email,
     "Уведомление с intelectpravo.ru",
-    "Вы успешно обновили профиль на сайте intelectpravo.ru",
+    "Вы успешно обновили профиль на сайте intelectpravo.ru"
   );
 
   res.json({ message: "Профиль обновлен.", profile });
@@ -109,7 +109,7 @@ exports.uploadDocumentPhoto = async (req, res) => {
   sendEmail(
     profile.email,
     "Уведомление с intelectpravo.ru",
-    "Вы успешно загрузили фото документа на сайте intelectpravo.ru",
+    "Вы успешно загрузили фото документа на сайте intelectpravo.ru"
   );
 
   res.json({
@@ -162,7 +162,7 @@ exports.addBankDetails = async (req, res) => {
   sendEmail(
     profile.email,
     "Уведомление с intelectpravo.ru",
-    "Вы успешно изменили бакновские реквизиты на сайте intelectpravo.ru",
+    "Вы успешно изменили бакновские реквизиты на сайте intelectpravo.ru"
   );
 
   res.json({ message: "Банковские реквизиты добавлены.", bankDetails });
@@ -208,7 +208,7 @@ exports.changePassword = async (req, res) => {
     sendEmail(
       user.email,
       "Уведомление с intelectpravo.ru",
-      "Вы успешно изменили пароль на сайте intelectpravo.ru",
+      "Вы успешно изменили пароль на сайте intelectpravo.ru"
     );
     res.status(200).json({ message: "Пароль успешно изменен." });
   } catch (error) {
@@ -239,7 +239,7 @@ exports.restorePassword = async (req, res) => {
     sendEmail(
       user.email,
       "Уведомление с intelectpravo.ru",
-      "Вы успешно изменили пароль на сайте intelectpravo.ru",
+      "Вы успешно изменили пароль на сайте intelectpravo.ru"
     );
     res.status(200).json({ message: "Пароль успешно изменен." });
   } catch (error) {
@@ -262,7 +262,6 @@ exports.checkVerifyAction = async (req, res) => {
   const { phoneNumber, code, encodedCode } = req.body;
   const userId = req.user.id;
   const savedCode = await Code.findOne({ where: { phoneNumber, code } });
-  await Code.destroy({ where: { phoneNumber, code } });
 
   if (
     !savedCode ||
@@ -273,6 +272,7 @@ exports.checkVerifyAction = async (req, res) => {
       .status(400)
       .json({ message: "Неправильный или просроченный код." });
   }
+  await Code.destroy({ where: { phoneNumber } });
 
   res.status(200).json({
     message: "Действие успешко подтверждено.",
@@ -320,7 +320,7 @@ exports.getNotConfirmedFilledUsers = async (req, res) => {
 
     // Исключение текущего пользователя из списка
     const usersWithoutCurrent = users.filter(
-      (user) => user.userId !== currentUserId,
+      (user) => user.userId !== currentUserId
     );
 
     // Получение банковских реквизитов для найденных пользователей
@@ -385,7 +385,7 @@ exports.confirmProfile = async (req, res) => {
     // Подтверждение профиля пользователя
     const confirmedUser = await UserProfile.update(
       { isConfirmed: true },
-      { where: { userId }, returning: true },
+      { where: { userId }, returning: true }
     );
 
     // Отправка уведомления на почту
@@ -394,7 +394,7 @@ exports.confirmProfile = async (req, res) => {
     sendEmail(
       userEmail,
       "Подтверждение профиля на IntellectPravo",
-      "Ваш профиль на IntellectPravo был успешно подтвержден. Теперь вы можете размещать и покупать произведения онлайн.",
+      "Ваш профиль на IntellectPravo был успешно подтвержден. Теперь вы можете размещать и покупать произведения онлайн."
     );
 
     res.status(200).json({ message: "Профиль подтвержден." });
@@ -424,7 +424,7 @@ exports.disConfirmProfile = async (req, res) => {
     // Отклонение профиля пользователя (сброс подтверждения)
     const disConfirmedUser = await UserProfile.update(
       { isConfirmed: false },
-      { where: { userId }, returning: true },
+      { where: { userId }, returning: true }
     );
 
     // Отправка уведомления на почту
@@ -432,7 +432,7 @@ exports.disConfirmProfile = async (req, res) => {
     sendEmail(
       userEmail,
       "Отклонение профиля на IntellectPravo",
-      "Ваш профиль на IntellectPravo был отклонен администратором. Пожалуйста, исправьте введенные данные и отправьте их повторно для подтверждения.",
+      "Ваш профиль на IntellectPravo был отклонен администратором. Пожалуйста, исправьте введенные данные и отправьте их повторно для подтверждения."
     );
 
     res.status(200).json({ message: "Профиль отклонен." });
@@ -461,7 +461,7 @@ exports.addAdmin = async (req, res) => {
     // Отклонение профиля пользователя (сброс подтверждения)
     await UserProfile.update(
       { admin: true },
-      { where: { userId }, returning: true },
+      { where: { userId }, returning: true }
     );
 
     res.json({ message: "Админ добавлен." });
@@ -489,7 +489,7 @@ exports.removeAdmin = async (req, res) => {
     // Отклонение профиля пользователя (сброс подтверждения)
     await UserProfile.update(
       { admin: false },
-      { where: { userId }, returning: true },
+      { where: { userId }, returning: true }
     );
 
     res.json({ message: "Админ удален из админов." });
@@ -505,7 +505,7 @@ exports.submitProfileToConfirm = async (req, res) => {
     // Отклонение профиля пользователя (сброс подтверждения)
     await UserProfile.update(
       { toSend: true },
-      { where: { userId }, returning: true },
+      { where: { userId }, returning: true }
     );
 
     res.json({ message: "Профиль отправлен администратору на проверку" });
