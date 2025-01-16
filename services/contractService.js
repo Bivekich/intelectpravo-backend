@@ -259,8 +259,13 @@ exports.generateContract = async (
                 <th class="yellow">ОГРНИП</th>
                 <td class="blue">324774600051330</td>
               </tr>`
-              : `
-          <tr>
+              : `${owner.inoy ? `<tr>
+            <th class="yellow number">1.1.4.</th>
+            <th class="yellow">Документ удостоверяющий личность</th>
+            <td class="blue">${owner.inoy} ${
+                  owner.inoy
+                }</td>
+          </tr>` : `<tr>
             <th class="yellow number">1.1.4.</th>
             <th class="yellow">Серия номер паспорта</th>
             <td class="blue">${owner.passportSeries} ${
@@ -283,11 +288,12 @@ exports.generateContract = async (
             <th class="yellow number">1.1.7.</th>
             <th class="yellow">Кем выдан</th>
             <td class="blue">${owner.passportIssuedBy}</td>
-          </tr>`
+          </tr>`}
+          `
           }
 
           <tr>
-            <th class="yellow number">${owner.admin ? `1.1.6` : `1.1.8.`}</th>
+            <th class="yellow number">${owner.inoy ? `1.1.5.` : (owner.admin ? `1.1.6` : `1.1.8.`)}</th>
             <th class="yellow">Адрес регистрации</th>
             <td class="blue">${
               owner.admin
@@ -296,14 +302,14 @@ exports.generateContract = async (
             }</td>
           </tr>
           <tr>
-            <th class="yellow number">${owner.admin ? `1.1.7` : `1.1.9.`}</th>
+            <th class="yellow number">${owner.inoy ? `1.1.6.` : (owner.admin ? `1.1.7` : `1.1.9.`)}</th>
             <th colspan="2" class="yellow title">
               БАНКОВСКИЕ РЕКВИЗИТЫ ПРАВООБЛАДАТЕЛЯ
             </th>
           </tr>
           <tr>
             <th class="yellow number">${
-              owner.admin ? `1.1.7.1` : `1.1.9.1`
+              owner.inoy ? `1.1.6.1` : (owner.admin ? `1.1.7.1` : `1.1.9.1`)
             }</th>
             <th class="yellow">Рассчетный счёт</th>
             <td class="blue">${
@@ -314,7 +320,7 @@ exports.generateContract = async (
           </tr>
           <tr>
             <th class="yellow number">${
-              owner.admin ? `1.1.7.2` : `1.1.9.2`
+              owner.inoy ? `1.1.6.2` : (owner.admin ? `1.1.7.2` : `1.1.9.2`)
             }</th>
             <th class="yellow">КОРРЕСПОНДЕТСКИЙ СЧЁТ</th>
             <td class="blue">${
@@ -325,7 +331,7 @@ exports.generateContract = async (
           </tr>
           <tr>
             <th class="yellow number">${
-              owner.admin ? `1.1.7.3` : `1.1.9.3`
+              owner.inoy ? `1.1.6.3` : (owner.admin ? `1.1.7.3` : `1.1.9.3`)
             }</th>
             <th class="yellow">БИК БАНКА</th>
             <td class="blue">${
@@ -379,7 +385,13 @@ exports.generateContract = async (
                 <td class="blue">324774600051330</td>
               </tr>`
               : `
-          <tr>
+          ${buyer.inoy ? `<tr>
+            <th class="yellow number">1.2.4.</th>
+            <th class="yellow">Документ удостоверяющий личность</th>
+            <td class="blue">${buyer.inoy} ${
+                  buyer.inoy
+                }</td>
+          </tr>` : `<tr>
             <th class="yellow number">1.2.4.</th>
             <th class="yellow">Серия номер паспорта</th>
             <td class="blue">${buyer.passportSeries} ${
@@ -402,11 +414,12 @@ exports.generateContract = async (
             <th class="yellow number">1.2.7.</th>
             <th class="yellow">Кем выдан</th>
             <td class="blue">${buyer.passportIssuedBy}</td>
-          </tr>`
+          </tr>`}
+          `
           }
 
           <tr>
-            <th class="yellow number">${buyer.admin ? `1.2.6` : `1.2.8.`}</th>
+            <th class="yellow number">${buyer.inoy ? "1.2.5." : (buyer.admin ? `1.2.6` : `1.2.8.`)}</th>
             <th class="yellow">Адрес регистрации</th>
             <td class="blue">${
               buyer.admin
@@ -415,14 +428,14 @@ exports.generateContract = async (
             }</td>
           </tr>
           <tr>
-            <th class="yellow number">${buyer.admin ? `1.2.7` : `1.2.9.`}</th>
+            <th class="yellow number">${buyer.inoy ? "1.2.6." : (buyer.admin ? `1.2.7` : `1.2.9.`)}</th>
             <th colspan="2" class="yellow title">
               БАНКОВСКИЕ РЕКВИЗИТЫ ПРиобретателя
             </th>
           </tr>
           <tr>
             <th class="yellow number">${
-              buyer.admin ? `1.2.7.1` : `1.2.9.1`
+              buyer.inoy ? "1.2.6.1." : (buyer.admin ? `1.2.7.1` : `1.2.9.1`)
             }</th>
             <th class="yellow">Рассчетный счёт</th>
             <td class="blue">${
@@ -433,7 +446,7 @@ exports.generateContract = async (
           </tr>
           <tr>
             <th class="yellow number">${
-              buyer.admin ? `1.2.7.2` : `1.2.9.2`
+              buyer.inoy ? "1.2.6.2" : (buyer.admin ? `1.2.7.2` : `1.2.9.2`)
             }</th>
             <th class="yellow">КОРРЕСПОНДЕТСКИЙ СЧЁТ</th>
             <td class="blue">${
@@ -444,7 +457,7 @@ exports.generateContract = async (
           </tr>
           <tr>
             <th class="yellow number">${
-              buyer.admin ? `1.2.7.3` : `1.2.9.3`
+              buyer.inoy ? "1.2.6.3" : (buyer.admin ? `1.2.7.3` : `1.2.9.3`)
             }</th>
             <th class="yellow">БИК БАНКА</th>
             <td class="blue">${

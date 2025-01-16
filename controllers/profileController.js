@@ -23,6 +23,7 @@ exports.getBasicProfile = async (req, res) => {
   if (profile.documentPhoto) {
     profile.documentPhoto = `${process.env.BASE_URL}/${profile.documentPhoto}`;
   }
+  console.log(profile)
   res.json(profile);
 };
 
@@ -34,6 +35,7 @@ exports.updateProfile = async (req, res) => {
     surname,
     patronymic,
     birthDate,
+    inoy,
     address,
     passportSeries,
     passportNumber,
@@ -51,6 +53,7 @@ exports.updateProfile = async (req, res) => {
       surname,
       patronymic,
       birthDate,
+      inoy,
       address,
       passportSeries,
       passportNumber,
@@ -79,6 +82,7 @@ exports.updateProfile = async (req, res) => {
     passportCode,
     passportIssuedDate,
     email,
+    inoy,
     phoneNumber,
     isConfirmed: false,
     toSend: false,
